@@ -1,4 +1,4 @@
-module github.com/confidential-containers/cloud-api-adaptor
+module github.com/mkulke/cloud-api-adaptor
 
 go 1.18
 
