@@ -185,15 +185,15 @@ func (p *azureProvider) CreateInstance(ctx context.Context, podName, sandboxID s
 		managedDiskParams = &armcompute.ManagedDiskParameters{
 			StorageAccountType: to.Ptr(armcompute.StorageAccountTypesStandardLRS),
 			SecurityProfile: &armcompute.VMDiskSecurityProfile{
-				SecurityEncryptionType: to.Ptr(armcompute.SecurityEncryptionTypesVMGuestStateOnly),
+				SecurityEncryptionType: to.Ptr(armcompute.SecurityEncryptionTypes("NonPersistedVMGuestState")),
 			},
 		}
 
 		securityProfile = &armcompute.SecurityProfile{
 			SecurityType: to.Ptr(armcompute.SecurityTypesConfidentialVM),
 			UefiSettings: &armcompute.UefiSettings{
-				SecureBootEnabled: to.Ptr(true),
-				VTpmEnabled:       to.Ptr(true),
+				SecureBootEnabled: to.Ptr(false),
+				VTpmEnabled:       to.Ptr(false),
 			},
 		}
 	} else {
