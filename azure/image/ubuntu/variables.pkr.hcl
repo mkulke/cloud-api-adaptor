@@ -61,6 +61,11 @@ variable "use_azure_cli_auth" {
   default = false
 }
 
+variable "location" {
+  type    = string
+  default = "eastus"
+}
+
 variable "ssh_username" {
   type    = string
   default = "peerpod"

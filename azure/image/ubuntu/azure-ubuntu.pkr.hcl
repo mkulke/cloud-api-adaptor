@@ -6,13 +6,13 @@ source "azure-arm" "ubuntu" {
   tenant_id          = "${var.tenant_id}"
 
   vm_size                           = "${var.vm_size}"
+  location						    = "${var.location}"
   os_type                           = "Linux"
   image_publisher                   = "${var.publisher}"
   image_offer                       = "${var.offer}"
   image_sku                         = "${var.sku}"
   managed_image_name                = "${var.az_image_name}"
   managed_image_resource_group_name = "${var.resource_group}"
-  build_resource_group_name         = "${var.resource_group}"
 
   shared_image_gallery_destination {
     subscription         = "${var.subscription_id}"
@@ -20,6 +20,7 @@ source "azure-arm" "ubuntu" {
     gallery_name         = "${var.az_gallery_name}"
     image_name           = "${var.az_gallery_image_name}"
     image_version        = "${var.az_gallery_image_version}"
+	replication_regions  = ["eastus2euap"]
     storage_account_type = "Standard_LRS"
   }
 }
