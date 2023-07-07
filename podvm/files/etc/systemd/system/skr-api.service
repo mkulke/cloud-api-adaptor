@@ -1,0 +1,14 @@
+[Unit]
+Description=Secure Key Release Service
+BindsTo=netns@podns.service attester.service
+Wants=attester.service
+After=network.target netns@podns.service attester.service
+
+[Service]
+Type=simple
+NetworkNamespacePath=/run/netns/podns
+ExecStart=/usr/local/bin/skr-api -s /run/confidential-containers/attester.sock -k http://10.200.24.4:808
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
