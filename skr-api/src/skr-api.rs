@@ -38,6 +38,10 @@ struct Config {
         default_value = "/run/confidential-containers/skr-api.sock"
     )]
     socket_path: String,
+
+    /// tcp port to listen on
+    #[arg(short, long, default_value = "50080")]
+    port: u16,
 }
 
 #[derive(serde::Deserialize)]
@@ -244,7 +248,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_state(app_state)
         .layer(http_trace_layer);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], config.port));
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await?;
