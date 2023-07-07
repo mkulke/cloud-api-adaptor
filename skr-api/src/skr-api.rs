@@ -7,8 +7,10 @@ use kbs_types::Attestation;
 use platform::{platform_client::PlatformClient, EvidenceRequest, TeeRequest};
 use std::convert::From;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::UnixStream;
+use tokio::sync::Mutex;
 use tonic::transport::{Channel, Endpoint};
 use tower::service_fn;
 use tower_http::trace::{self, TraceLayer};
@@ -50,7 +52,7 @@ async fn kbs_auth(
     kbs_url: &str,
     tee: &str,
 ) -> anyhow::Result<String> {
-    let url = format!("{}/kbs/v0/auth", kbs_url);
+    let url = format!("{kbs_url}/kbs/v0/auth");
     tracing::info!(message = "Calling kbs", %url);
     let request = kbs_protocol::types::Request::new(tee.into());
     let challenge = client
@@ -140,29 +142,31 @@ async fn kbs_get_resource(state: &mut AppState, resource: Resource) -> anyhow::R
     );
     let url = format!("{kbs_url}/kbs/v0/resource/{resource_path}");
 
+    let token_mutex = state.token.clone();
+    let token = &mut token_mutex.lock().await;
+
     // If there is no token set, perform an attestation to get one
-    if state.token.is_none() {
-        state.token = Some(kbs_get_token(state).await?);
+    if token.is_none() {
+        tracing::info!("no token yet, getting one");
+        **token = Some(kbs_get_token(state).await?);
     }
 
     for attempt in 1..=KBS_GET_RESOURCE_MAX_ATTEMPT {
-        tracing::info!(message = "Calling kbs", %url);
+        tracing::info!(message = "Calling kbs", %url, %attempt);
         let response = state.http_client.get(&url).send().await?;
-        if let StatusCode::OK = response.status() {
+        let status_code = response.status();
+        if let StatusCode::OK = status_code {
             let response = response.json::<kbs_protocol::types::Response>().await?;
             let payload_data = response.decrypt_output(tee_key)?;
             return Ok(payload_data);
         }
         // The token might be expired
-        if let StatusCode::UNAUTHORIZED = response.status() {
-            tracing::info!(
-                message = "kbs returned unauthorized, getting new token",
-                attempt = attempt,
-                max_attempts = KBS_GET_RESOURCE_MAX_ATTEMPT,
-            );
-            state.token = Some(kbs_get_token(state).await?);
+        if let StatusCode::UNAUTHORIZED = status_code {
+            tracing::info!("kbs returned unauthorized, getting new token");
+            **token = Some(kbs_get_token(state).await?);
             continue;
         }
+        tracing::error!(message = "kbs returned error", %status_code);
     }
     Err(anyhow::anyhow!(
         "kbs failed to retrieve resource {resource_path}"
@@ -186,7 +190,7 @@ struct AppState {
     http_client: reqwest::Client,
     tee: String,
     tee_key: TeeKey,
-    token: Option<String>,
+    token: Arc<Mutex<Option<String>>>,
 }
 
 #[tokio::main]
@@ -228,7 +232,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         http_client,
         tee,
         tee_key,
-        token: None,
+        token: Arc::new(Mutex::new(None)),
     };
 
     let app = Router::new()
