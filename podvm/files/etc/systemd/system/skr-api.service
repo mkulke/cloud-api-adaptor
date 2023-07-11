@@ -7,7 +7,8 @@ After=network.target netns@podns.service attester.service
 [Service]
 Type=simple
 NetworkNamespacePath=/run/netns/podns
-ExecStart=/usr/local/bin/skr-api -s /run/confidential-containers/attester.sock -k http://10.200.24.4:808
+BindReadOnlyPaths=/etc/skr-api.resolv.conf:/etc/resolv.conf:norbind
+ExecStart=/usr/local/bin/skr-api -s /run/confidential-containers/attester.sock -k https://kbs.tailcca2d.ts.net
 Restart=always
 
 [Install]
