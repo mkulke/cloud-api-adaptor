@@ -99,6 +99,8 @@ func (cfg *daemonConfig) Setup() (cmd.Starter, error) {
 		flags.StringVar(&cfg.serverConfig.CriSocketPath, "cri-runtime-endpoint", "", "cri runtime uds endpoint")
 		flags.StringVar(&cfg.serverConfig.PauseImage, "pause-image", "", "pause image to be used for the pods")
 		flags.StringVar(&cfg.serverConfig.ForwarderPort, "forwarder-port", daemon.DefaultListenPort, "port number of agent protocol forwarder")
+		flags.StringVar(&cfg.serverConfig.AAKBCParams, "aa-kbc-params", "", "attestation-agent KBC parameters")
+
 		flags.StringVar(&tlsConfig.CAFile, "ca-cert-file", "", "CA cert file")
 		flags.StringVar(&tlsConfig.CertFile, "cert-file", "", "cert file")
 		flags.StringVar(&tlsConfig.KeyFile, "cert-key", "", "cert key")

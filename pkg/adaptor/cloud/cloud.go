@@ -70,7 +70,7 @@ func (s *cloudService) removeSandbox(id sandboxID) error {
 	return nil
 }
 
-func NewService(provider Provider, proxyFactory proxy.Factory, workerNode podnetwork.WorkerNode, podsDir, daemonPort string) Service {
+func NewService(provider Provider, proxyFactory proxy.Factory, workerNode podnetwork.WorkerNode, podsDir, daemonPort, aaKBCParams string) Service {
 	var err error
 
 	s := &cloudService{
@@ -80,6 +80,7 @@ func NewService(provider Provider, proxyFactory proxy.Factory, workerNode podnet
 		podsDir:      podsDir,
 		daemonPort:   daemonPort,
 		workerNode:   workerNode,
+		aaKBCParams:  aaKBCParams,
 	}
 	s.cond = sync.NewCond(&s.mutex)
 	s.ppService, err = k8sops.NewPeerPodService()
@@ -234,6 +235,14 @@ func (s *cloudService) CreateVM(ctx context.Context, req *pb.CreateVMRequest) (r
 				Content: string(daemonJSON),
 			},
 		},
+	}
+
+	if s.aaKBCParams != "" {
+		aaKbcParamsFile := cloudinit.WriteFile{
+			Path:    "/etc/attestation-agent/kbc-params",
+			Content: s.aaKBCParams,
+		}
+		cloudConfig.WriteFiles = append(cloudConfig.WriteFiles, aaKbcParamsFile)
 	}
 
 	if authJSON, err := os.ReadFile(cloudinit.DefaultAuthfileSrcPath); err == nil {
