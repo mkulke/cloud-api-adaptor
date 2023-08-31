@@ -20,18 +20,22 @@ type AzureCloudAssert struct{}
 var assert = &AzureCloudAssert{}
 
 func TestDeletePodAzure(t *testing.T) {
+	t.Parallel()
 	doTestDeleteSimplePod(t, assert)
 }
 
 func TestCreateSimplePodAzure(t *testing.T) {
+	t.Parallel()
 	doTestCreateSimplePod(t, assert)
 }
 
 func TestCreatePodWithConfigMapAzure(t *testing.T) {
+	t.Parallel()
 	doTestCreatePodWithConfigMap(t, assert)
 }
 
 func TestCreatePodWithSecretAzure(t *testing.T) {
+	t.Parallel()
 	doTestCreatePodWithSecret(t, assert)
 }
 
