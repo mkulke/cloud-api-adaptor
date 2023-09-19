@@ -1,6 +1,9 @@
 name: Azure PodVM image build
 
 on:
+  push:
+    branches:
+    - mkulke/tbd
   workflow_call:
     inputs:
       image-version:
@@ -36,20 +39,26 @@ env:
 jobs:
   build-podvm-image:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cloud-api-adaptor/azure/image
+    # defaults:
+    #   run:
+    #     working-directory: cloud-api-adaptor/azure/image
     outputs:
       image-id: "${{ steps.create-image.outputs.image-id }}"
     steps:
+    - name: mgns prior to clone
+      run: |
+        pwd
+        echo find .. -maxdepth 1
+        find .. -maxdepth 1
+
     - name: Clone cloud-api-adaptor repository
       uses: actions/checkout@v3
-      with:
-        path: cloud-api-adaptor
-        ref: "${{ inputs.git-ref || 'main' }}"
+      # with:
+        # path: cloud-api-adaptor
+        # ref: "${{ inputs.git-ref || 'main' }}"
 
     - name: Read properties from versions.yaml
-      working-directory: cloud-api-adaptor
+      # working-directory: cloud-api-adaptor
       run: |
         go_version="$(yq '.tools.golang' versions.yaml)"
         [ -n "$go_version" ]
@@ -63,78 +72,85 @@ jobs:
         [ "$kata_src_branch" ]
         echo "KATA_SRC_BRANCH=${kata_src_branch}" >> $GITHUB_ENV
 
-    - name: Set up Go environment
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ env.GO_VERSION }}
-        cache-dependency-path: cloud-api-adaptor/go.sum
+    # - name: Set up Go environment
+    #   uses: actions/setup-go@v4
+    #   with:
+    #     go-version: ${{ env.GO_VERSION }}
+    #     cache-dependency-path: cloud-api-adaptor/go.sum
 
-    - name: Install build dependencies
-      run: sudo apt-get install -y musl-tools libdevmapper-dev libgpgme-dev
+    # - name: Install build dependencies
+    #   run: sudo apt-get install -y musl-tools libdevmapper-dev libgpgme-dev
 
-    - name: Build agent-protocol-forwarder
-      env:
-        GOPATH: /home/runner/go
-      run: make "$(realpath -m ../../podvm/files/usr/local/bin/agent-protocol-forwarder)"
+    # - name: Build agent-protocol-forwarder
+    #   env:
+    #     GOPATH: /home/runner/go
+    #   run: make "$(realpath -m ../../podvm/files/usr/local/bin/agent-protocol-forwarder)"
 
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: ${{ env.RUST_VERSION }}
-        target: x86_64-unknown-linux-musl
-        default: true
+    # - uses: actions-rs/toolchain@v1
+    #   with:
+    #     profile: minimal
+    #     toolchain: ${{ env.RUST_VERSION }}
+    #     target: x86_64-unknown-linux-musl
+    #     default: true
 
-    - name: Set up kata-agent cache
-      id: kata-agent-cache
-      uses: actions/cache@v3
-      with:
-        path: cloud-api-adaptor/podvm/files/usr/local/bin/kata-agent
-        key: kata-agent-${{ env.KATA_SRC_BRANCH }}_rust${{ env.RUST_VERSION }}
+    # - name: Set up kata-agent cache
+    #   id: kata-agent-cache
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: cloud-api-adaptor/podvm/files/usr/local/bin/kata-agent
+    #     key: kata-agent-${{ env.KATA_SRC_BRANCH }}_rust${{ env.RUST_VERSION }}
 
-    - name: Clone kata-containers repository
-      if: steps.kata-agent-cache.outputs.cache-hit != 'true'
-      uses: actions/checkout@v3
-      with:
-        repository: kata-containers/kata-containers
-        path: kata-containers
-        ref: ${{ env.KATA_SRC_BRANCH }}
+    # - name: Clone kata-containers repository
+    #   if: steps.kata-agent-cache.outputs.cache-hit != 'true'
+    #   uses: actions/checkout@v3
+    #   with:
+    #     repository: kata-containers/kata-containers
+    #     path: kata-containers
+    #     ref: ${{ env.KATA_SRC_BRANCH }}
 
-    - name: Build kata-agent
-      env:
-        GOPATH: /home/runner/go
-      if: steps.kata-agent-cache.outputs.cache-hit != 'true'
-      run: make "$(realpath -m ../../podvm/files/usr/local/bin/kata-agent)"
+    # - name: mgns after clone
+    #   run: |
+    #     pwd
+    #     echo find .. -maxdepth 1
+    #     find .. -maxdepth 1
 
-    - name: Set up pause cache
-      id: pause-cache
-      uses: actions/cache@v3
-      with:
-        path: cloud-api-adaptor/podvm/files/pause_bundle
-        key: pause-${{ hashFiles('cloud-api-adaptor/podvm/Makefile.inc') }}
+    # - name: Build kata-agent
+    #   env:
+    #     GOPATH: /home/runner/go
+    #   if: steps.kata-agent-cache.outputs.cache-hit != 'true'
+    #   run: make "$(realpath -m ../../podvm/files/usr/local/bin/kata-agent)"
 
-    - name: Build pause bundle
-      if: steps.pause-cache.outputs.cache-hit != 'true'
-      run: make "$(realpath -m ../../podvm/files/pause_bundle/rootfs/pause)"
+    # - name: Set up pause cache
+    #   id: pause-cache
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: cloud-api-adaptor/podvm/files/pause_bundle
+    #     key: pause-${{ hashFiles('cloud-api-adaptor/podvm/Makefile.inc') }}
 
-    - name: Set up attestation-agent cache
-      id: aa-cache
-      uses: actions/cache@v3
-      with:
-        path: cloud-api-adaptor/podvm/files/usr/local/bin/attestation-agent
-        key: aa-${{ hashFiles('cloud-api-adaptor/podvm/Makefile.inc') }}
+    # - name: Build pause bundle
+    #   if: steps.pause-cache.outputs.cache-hit != 'true'
+    #   run: make "$(realpath -m ../../podvm/files/pause_bundle/rootfs/pause)"
 
-    - name: Build attestation-agent
-      if: steps.aa-cache.outputs.cache-hit != 'true'
-      run: make "$(realpath -m ../../podvm/files/usr/local/bin/attestation-agent)"
+    # - name: Set up attestation-agent cache
+    #   id: aa-cache
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: cloud-api-adaptor/podvm/files/usr/local/bin/attestation-agent
+    #     key: aa-${{ hashFiles('cloud-api-adaptor/podvm/Makefile.inc') }}
 
-    - uses: azure/login@v1
-      name: 'Az CLI login'
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+    # - name: Build attestation-agent
+    #   if: steps.aa-cache.outputs.cache-hit != 'true'
+    #   run: make "$(realpath -m ../../podvm/files/usr/local/bin/attestation-agent)"
+
+    # - uses: azure/login@v1
+    #   name: 'Az CLI login'
+    #   with:
+    #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
+    #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
 
     - name: Create image
+      working-directory: azure/image
       id: create-image
       env:
         IMAGE_ID: "${{ env.COMMUNITY_GALLERY_PREFIX }}/images/${{ env.AZURE_PODVM_IMAGE_DEF_NAME }}/versions/${{ env.AZURE_PODVM_IMAGE_VERSION }}"
@@ -150,14 +166,15 @@ jobs:
         PKR_VAR_use_azure_cli_auth: "true"
         PODVM_DISTRO: "ubuntu"
       run: |
+        which yq
         make image BINARIES=
         echo "successfully built $IMAGE_ID"
         echo "image-id=${IMAGE_ID}" >> "$GITHUB_OUTPUT"
 
-    - name: Cleanup intermediate image
-      if: always()
-      run: |
-        # Delete intermediate image
-        az image delete \
-          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-          --name ${{ env.PODVM_IMAGE_NAME }}
+    # - name: Cleanup intermediate image
+    #   if: always()
+    #   run: |
+    #     # Delete intermediate image
+    #     az image delete \
+    #       --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+    #       --name ${{ env.PODVM_IMAGE_NAME }}
