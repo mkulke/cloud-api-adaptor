@@ -76,13 +76,13 @@ func main() {
 			}
 		}
 
-		cloudAPIAdaptor, err := pv.NewCloudAPIAdaptor(cloudProvider, installDirectory)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := cloudAPIAdaptor.Deploy(context.TODO(), cfg, provisioner.GetProperties(context.TODO(), cfg)); err != nil {
-			log.Fatal(err)
-		}
+		//cloudAPIAdaptor, err := pv.NewCloudAPIAdaptor(cloudProvider, installDirectory)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// if err := cloudAPIAdaptor.Deploy(context.TODO(), cfg, provisioner.GetProperties(context.TODO(), cfg)); err != nil {
+		// 	log.Fatal(err)
+		// }
 	}
 
 	if *action == "deprovision" {
