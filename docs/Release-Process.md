@@ -30,7 +30,7 @@ This can be done by running
     go get github.com/kata-containers/kata-containers/src/runtime@<release candidate branch e.g. CCv0>
     go mod tidy
     ```
-in the top-level repo directory, and the `peerpod-ctl` and `volumes/csi-wrapper` directories.
+in the top-level repo directory, and the `peerpod-ctrl` and `volumes/csi-wrapper` directories.
 > **Note:** If there are API changes in the kata-runtime go modules and we need to cloud-api-adaptor to implement,
 then it may be necessary to temporarily get the peerpod-ctrl and csi-wrapper to self-reference the parent folder to
 avoid compilation errors. This can be done by running: 
