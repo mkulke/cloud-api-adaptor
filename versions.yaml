@@ -33,8 +33,8 @@ git:
     url: https://github.com/confidential-containers/guest-components
     reference: v0.8.0
   kata-containers:
-    url: https://github.com/kata-containers/kata-containers
-    reference: CC-0.8.1
+    url: https://github.com/mkulke/kata-containers
+    reference: mkulke/fix-layer-ordering
   umoci:
     url: https://github.com/opencontainers/umoci
     reference: v0.4.7
