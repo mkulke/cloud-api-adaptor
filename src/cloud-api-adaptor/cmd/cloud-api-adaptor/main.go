@@ -93,6 +93,7 @@ func (cfg *daemonConfig) Setup() (cmd.Starter, error) {
 		secureCommsInbounds  string
 		secureCommsOutbounds string
 		secureCommsKbsAddr   string
+		kbsCertFile          string
 	)
 
 	cmd.Parse(programName, os.Args[1:], func(flags *flag.FlagSet) {
@@ -123,7 +124,7 @@ func (cfg *daemonConfig) Setup() (cmd.Starter, error) {
 		flags.IntVar(&cfg.networkConfig.VXLANPort, "vxlan-port", vxlan.DefaultVXLANPort, "VXLAN UDP port number (VXLAN tunnel mode only")
 		flags.IntVar(&cfg.networkConfig.VXLANMinID, "vxlan-min-id", vxlan.DefaultVXLANMinID, "Minimum VXLAN ID (VXLAN tunnel mode only")
 		flags.StringVar(&cfg.serverConfig.AAKBCParams, "aa-kbc-params", "", "attestation-agent KBC parameters")
-		flags.StringVar(&cfg.serverConfig.KBSCERT, "kbs-cert", "", "cert of secure KBS")
+		flags.StringVar(&kbsCertFile, "kbs-cert-file", "", "cert of secure KBS")
 		flags.BoolVar(&cfg.serverConfig.EnableCloudConfigVerify, "cloud-config-verify", false, "Enable cloud config verify - should use it for production")
 
 		cloud.ParseCmd(flags)
@@ -132,6 +133,15 @@ func (cfg *daemonConfig) Setup() (cmd.Starter, error) {
 	cmd.ShowVersion(programName)
 
 	fmt.Printf("%s: starting Cloud API Adaptor daemon for %q\n", programName, cloudName)
+
+	if kbsCertFile != "" {
+		var err error
+		kbsCert, err := os.ReadFile(kbsCertFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read KBS cert file: %w", err)
+		}
+		cfg.serverConfig.KBSCert = kbsCert
+	}
 
 	if secureComms {
 		err := kubemgr.InitKubeMgrInVivo()

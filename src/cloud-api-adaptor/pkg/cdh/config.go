@@ -23,7 +23,7 @@ type Config struct {
 type KBCConfig struct {
 	Name    string `toml:"name"`
 	URL     string `toml:"url"`
-	KBSCERT string `toml:"kbs_cert"`
+	KBSCert string `toml:"kbs_cert,multiline,omitempty"`
 }
 
 func parseAAKBCParams(aaKBCParams string) (*Config, error) {
@@ -36,9 +36,9 @@ func parseAAKBCParams(aaKBCParams string) (*Config, error) {
 	return &Config{Socket, kbcConfig, []Credential{}}, nil
 }
 
-func CreateConfigFile(aaKBCParams, kbsCert string) (string, error) {
+func CreateConfigFile(aaKBCParams string, kbsCert []byte) (string, error) {
 	config, err := parseAAKBCParams(aaKBCParams)
-	config.KBC.KBSCERT = kbsCert
+	config.KBC.KBSCert = string(kbsCert)
 	if err != nil {
 		return "", err
 	}

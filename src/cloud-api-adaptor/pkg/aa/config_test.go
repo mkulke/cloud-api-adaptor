@@ -25,7 +25,35 @@ url = 'http://127.0.0.1:8080'
 url = 'http://127.0.0.1:8080'
 `
 
-	config, err := CreateConfigFile("cc_kbc::http://127.0.0.1:8080")
+	config, err := CreateConfigFile("cc_kbc::http://127.0.0.1:8080", nil)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if config != refcfg {
+		t.Errorf("Expected: \n%s, got: \n%s", refcfg, config)
+	}
+}
+
+func TestConfigFileWithCert(t *testing.T) {
+	refcfg := `[token_configs]
+[token_configs.coco_as]
+url = 'http://127.0.0.1:8080'
+
+[token_configs.kbs]
+url = 'http://127.0.0.1:8080'
+cert = """
+-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+"""
+`
+	cert := `-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----
+`
+
+	config, err := CreateConfigFile("cc_kbc::http://127.0.0.1:8080", []byte(cert))
 	if err != nil {
 		t.Error(err)
 	}

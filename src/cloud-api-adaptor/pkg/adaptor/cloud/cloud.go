@@ -78,7 +78,7 @@ func (s *cloudService) removeSandbox(id sandboxID) error {
 }
 
 func NewService(provider provider.Provider, proxyFactory proxy.Factory, workerNode podnetwork.WorkerNode,
-	secureComms bool, secureCommsInbounds, secureCommsOutbounds, kbsAddress, podsDir, daemonPort, aaKBCParams, kbsCert, sshport string) Service {
+	secureComms bool, secureCommsInbounds, secureCommsOutbounds, kbsAddress, podsDir, daemonPort, aaKBCParams, sshport string, kbsCert []byte) Service {
 	var err error
 	var sshClient *wnssh.SshClient
 
@@ -278,7 +278,7 @@ func (s *cloudService) CreateVM(ctx context.Context, req *pb.CreateVMRequest) (r
 			Content: toml,
 		})
 
-		toml, err = aa.CreateConfigFile(s.aaKBCParams)
+		toml, err = aa.CreateConfigFile(s.aaKBCParams, s.kbsCert)
 		if err != nil {
 			return nil, fmt.Errorf("creating attestation agent config: %w", err)
 		}

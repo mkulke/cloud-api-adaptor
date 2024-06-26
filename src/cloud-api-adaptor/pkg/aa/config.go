@@ -17,7 +17,8 @@ type AAConfig struct {
 			URL string `toml:"url"`
 		} `toml:"coco_as"`
 		Kbs struct {
-			URL string `toml:"url"`
+			URL  string `toml:"url"`
+			Cert string `toml:"cert,multiline,omitempty"`
 		} `toml:"kbs"`
 	} `toml:"token_configs"`
 }
@@ -31,7 +32,7 @@ func parseAAKBCParams(aaKBCParams string) (string, error) {
 	return url, nil
 }
 
-func CreateConfigFile(aaKBCParams string) (string, error) {
+func CreateConfigFile(aaKBCParams string, kbsCert []byte) (string, error) {
 	url, err := parseAAKBCParams(aaKBCParams)
 	if err != nil {
 		return "", err
@@ -42,6 +43,7 @@ func CreateConfigFile(aaKBCParams string) (string, error) {
 	// Need a new parameter in addition to aaKBCParams if deploy AS and KBS separately.
 	config.TokenCfg.CocoAs.URL = url
 	config.TokenCfg.Kbs.URL = url
+	config.TokenCfg.Kbs.Cert = string(kbsCert)
 
 	bytes, err := toml.Marshal(config)
 	if err != nil {
