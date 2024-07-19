@@ -5,7 +5,7 @@ IBM Cloud VPC already supports to create Hyper Protect Virtual Server on LinuxON
 
 To support Secure Execution, we need build a Secure Execution enabled peer pod VM image, to replace the non-SE peer pod VM image.
 
-> **Note**: In [the document](https://www.ibm.com/docs/en/linux-on-systems?topic=execution-secure-workload) describe the details about execution secure workload, you can go through the document to get a simplified view about how your workload is protected.
+> **Note**: In [the document](https://www.ibm.com/docs/en/linux-on-systems?topic=security-secure-execution-linux) describe the details about execution secure workload, you can go through the document to get a simplified view about how your workload is protected.
 
 ## Set up a demo environment without Secure Execution on your development machine
 
@@ -51,10 +51,10 @@ Need input the **machine type** and **machine serial number**, which can be obta
 > ibmcloud is floating-ips | grep node-1
 > ssh root@<floating ip>
 > cat /proc/sysinfo
-> Manufacturer:         IBM             
+> Manufacturer:         IBM
 > Type:                 8562
 > LIC Identifier:       401e26ff62dc9b82
-> Model:                701              A01             
+> Model:                701              A01
 > Sequence Code:        0000000000012345
 > ...
 > ```
