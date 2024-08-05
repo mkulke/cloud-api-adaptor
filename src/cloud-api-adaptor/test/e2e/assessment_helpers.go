@@ -469,7 +469,6 @@ func DeletePod(ctx context.Context, client klient.Client, pod *v1.Pod, tcDelDura
 		wait.WithTimeout(*tcDelDuration)); err != nil {
 		return err
 	}
-	log.Infof("Pod %s has been successfully deleted within %.0fs", pod.Name, tcDelDuration.Seconds())
 	return nil
 }
 
