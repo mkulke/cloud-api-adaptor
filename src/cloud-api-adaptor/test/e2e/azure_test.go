@@ -29,13 +29,15 @@ func TestCreateSimplePodAzure(t *testing.T) {
 // 	DoTestNginxDeployment(t, testEnv, assert)
 // }
 
-// func TestPodToServiceCommunicationAzure(t *testing.T) {
-// 	DoTestPodToServiceCommunication(t, testEnv, assert)
-// }
+func TestPodToServiceCommunicationAzure(t *testing.T) {
+	t.Parallel()
+	DoTestPodToServiceCommunication(t, testEnv, assert)
+}
 
-// func TestPodsMTLSCommunicationAzure(t *testing.T) {
-// 	DoTestPodsMTLSCommunication(t, testEnv, assert)
-// }
+func TestPodsMTLSCommunicationAzure(t *testing.T) {
+	t.Parallel()
+	DoTestPodsMTLSCommunication(t, testEnv, assert)
+}
 
 // func TestPodVMwithAnnotationsInstanceTypeAzure(t *testing.T) {
 // 	SkipTestOnCI(t)
