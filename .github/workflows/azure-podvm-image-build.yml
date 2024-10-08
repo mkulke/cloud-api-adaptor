@@ -1,6 +1,9 @@
 name: Azure PodVM image build
 
 on:
+  push:
+    branches:
+    - mkulke/test
   workflow_call:
     inputs:
       image-version:
@@ -27,7 +30,7 @@ permissions:
 
 env:
   AZURE_PODVM_IMAGE_DEF_NAME: "${{ vars.AZURE_PODVM_IMAGE_DEF_NAME }}"
-  AZURE_PODVM_IMAGE_VERSION: "${{ inputs.image-version }}"
+  AZURE_PODVM_IMAGE_VERSION: "${{ inputs.image-version || '0.0.1' }}"
   COMMUNITY_GALLERY_PREFIX: "/CommunityGalleries/${{ vars.AZURE_COMMUNITY_GALLERY_NAME }}"
   PODVM_IMAGE_NAME: "peerpod-image-${{ github.run_id }}-${{ github.run_attempt }}"
   UPLOSI_VERSION: "0.3.0"
@@ -53,6 +56,9 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
 
+    - name: Test nix
+      run: sudo env "PATH=$PATH" nix develop ..#podvm-mkosi --command whoami
+
     - name: Install uplosi
       run: |
         wget "https://github.com/edgelesssys/uplosi/releases/download/v${UPLOSI_VERSION}/uplosi_${UPLOSI_VERSION}_linux_amd64.tar.gz"
@@ -66,7 +72,7 @@ jobs:
         ATTESTER="az-snp-vtpm-attester,az-tdx-vtpm-attester" make binaries
 
     - name: Build image
-      run: sudo make image
+      run: sudo env "PATH=$PATH" make image
 
     - uses: azure/login@v2
       name: 'Az CLI login'
