@@ -38,7 +38,7 @@ env:
 
 jobs:
   build-podvm-image:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: cloud-api-adaptor/src/cloud-api-adaptor/podvm-mkosi
@@ -56,9 +56,6 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
 
-    - name: Test nix
-      run: sudo env "PATH=$PATH" nix develop ..#podvm-mkosi --command whoami
-
     - name: Install uplosi
       run: |
         wget "https://github.com/edgelesssys/uplosi/releases/download/v${UPLOSI_VERSION}/uplosi_${UPLOSI_VERSION}_linux_amd64.tar.gz"
@@ -72,7 +69,7 @@ jobs:
         ATTESTER="az-snp-vtpm-attester,az-tdx-vtpm-attester" make binaries
 
     - name: Build image
-      run: sudo env "PATH=$PATH" make image
+      run: make image
 
     - uses: azure/login@v2
       name: 'Az CLI login'
