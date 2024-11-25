@@ -5,6 +5,9 @@
 Description=Process user data
 # some providers use cloud-init to provision config files, it does not matter if cloud-init disabled
 After=network.target cloud-init.service
+Wants=run-media-cidata.mount
+# mount configdisk if available
+Wants=run-media-cidata.mount
 DefaultDependencies=no
 
 
