@@ -57,6 +57,18 @@ jobs:
         run: |
           ./hack/ci-helper.sh rebase-atop-of-the-latest-target-branch
 
+      - name: Install firmware
+        run: |
+          sudo apt-get update && sudo apt-get install -y ovmf
+
+      - name: Read properties from versions.yaml
+        run: |
+          sudo snap install yq
+          go_version="$(yq '.tools.golang' versions.yaml)"
+          [ -n "$go_version" ]
+          echo "GO_VERSION=${go_version}" >> "$GITHUB_ENV"
+          echo "ORAS_VERSION=$(yq -e '.tools.oras' versions.yaml)" >> "$GITHUB_ENV"
+
       - name: Read properties from versions.yaml
         run: |
           sudo snap install yq
@@ -129,11 +141,11 @@ jobs:
           curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | \
             sudo bash -s /usr/local/bin
 
-      - name: Checkout KBS Repository
-        run: |
-          test/utils/checkout_kbs.sh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Checkout KBS Repository
+      #   run: |
+      #     test/utils/checkout_kbs.sh
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: run tests
         id: runTests
@@ -142,7 +154,7 @@ jobs:
           REGISTRY_CREDENTIAL_ENCODED: ${{ secrets.REGISTRY_CREDENTIAL_ENCODED }}
         run: |
           export CLOUD_PROVIDER=libvirt
-          #export DEPLOY_KBS=true
+          export DEPLOY_KBS="no"
           export TEST_PROVISION="yes"
           export TEST_TEARDOWN="no"
           export TEST_PROVISION_FILE="$PWD/libvirt.properties"
