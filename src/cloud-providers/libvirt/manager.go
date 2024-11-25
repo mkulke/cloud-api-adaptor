@@ -22,7 +22,8 @@ const (
 	defaultDataDir        = "/var/lib/libvirt/images"
 	defaultVolName        = "podvm-base.qcow2"
 	defaultLaunchSecurity = ""
-	defaultFirmware       = "/usr/share/edk2/ovmf/OVMF_CODE.fd"
+	// defaultFirmware       = "/usr/share/edk2/ovmf/OVMF_CODE.fd"
+	defaultFirmware = "/usr/share/OVMF/OVMF_CODE.fd"
 )
 
 func init() {
