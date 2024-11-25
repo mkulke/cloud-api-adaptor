@@ -333,7 +333,9 @@ func createDomainXMLx86_64(client *libvirtClient, cfg *domainConfig, vm *vmConfi
 		Memory:      &libvirtxml.DomainMemory{Value: cfg.mem, Unit: "GiB", DumpCore: "on"},
 		VCPU:        &libvirtxml.DomainVCPU{Value: cfg.cpu},
 		OS: &libvirtxml.DomainOS{
-			Type: &libvirtxml.DomainOSType{Arch: "x86_64", Type: typeHardwareVirtualMachine},
+			Type:     &libvirtxml.DomainOSType{Arch: "x86_64", Type: typeHardwareVirtualMachine},
+			Firmware: "efi",
+			Loader:   &libvirtxml.DomainLoader{Readonly: "yes", Type: "pflash", Path: vm.firmware},
 		},
 		// For Hot-Plug Feature.
 		Features: &libvirtxml.DomainFeatureList{
@@ -365,7 +367,7 @@ func createDomainXMLx86_64(client *libvirtClient, cfg *domainConfig, vm *vmConfi
 					Source: &libvirtxml.DomainDiskSource{
 						File: &libvirtxml.DomainDiskSourceFile{File: cfg.cidataDisk},
 					},
-					Target:   &libvirtxml.DomainDiskTarget{Dev: "hda", Bus: "ide"},
+					Target:   &libvirtxml.DomainDiskTarget{Dev: "sdb", Bus: "scsi"},
 					ReadOnly: &libvirtxml.DomainDiskReadOnly{},
 					Address: &libvirtxml.DomainAddress{
 						Drive: &libvirtxml.DomainAddressDrive{
