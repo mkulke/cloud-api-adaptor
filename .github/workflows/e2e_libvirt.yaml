@@ -5,6 +5,10 @@
 name: (Callable) libvirt e2e tests
 
 on:
+  push:
+    branches:
+    - mkulke/libvirt-efi
+
   workflow_call:
     inputs:
       podvm_image:
@@ -31,6 +35,7 @@ on:
 env:
   CLOUD_PROVIDER: libvirt
   DEBIAN_FRONTEND: noninteractive
+  TEST_E2E_SECURE_COMMS: "${{ inputs.secure_comms || 'none' }}"
 
 defaults:
   run:
@@ -60,6 +65,10 @@ jobs:
           echo "GO_VERSION=${go_version}" >> "$GITHUB_ENV"
           echo "ORAS_VERSION=$(yq -e '.tools.oras' versions.yaml)" >> "$GITHUB_ENV"
 
+      - uses: oras-project/setup-oras@v1
+        with:
+          version: ${{ env.ORAS_VERSION }}
+
       - name: Setup Golang version ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5
         with:
@@ -69,17 +78,32 @@ jobs:
       - name: Setup docker
         if: ${{ runner.environment == 'self-hosted' }}
         run: |
-          sudo apt-get install -y docker.io
+          sudo apt-get update && sudo apt-get install -y docker.io
           sudo usermod -aG docker "$USER"
 
-      - name: Extract qcow2 from ${{ inputs.podvm_image }}
-        run: |
-           qcow2=$(echo ${{ inputs.podvm_image }} | sed -e "s#.*/\(.*\):.*#\1.qcow2#")
-           ./hack/download-image.sh ${{ inputs.podvm_image }} . -o "${qcow2}" --clean-up
-           echo "PODVM_QCOW2=$(pwd)/${qcow2}" >> "$GITHUB_ENV"
-           # Clean up docker images to make space
-           docker system prune -a -f
-        working-directory: src/cloud-api-adaptor/podvm
+      # tmp enable
+      - name: pull image  
+        run: oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:94363554d905c08c83dbefe29620603479f6a0fa71c276306c27c38f68ed2d99
+
+      # tmp disable
+      # - name: Download image artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: system.raw
+      #     run-id: ${{ github.event.workflow_run.id }}
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set qcow2 image env
+        run: echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
+
+      # - name: Extract qcow2 from ${{ inputs.podvm_image }}
+      #   run: |
+      #      qcow2=$(echo ${{ inputs.podvm_image }} | sed -e "s#.*/\(.*\):.*#\1.qcow2#")
+      #      ./hack/download-image.sh ${{ inputs.podvm_image }} . -o "${qcow2}" --clean-up
+      #      echo "PODVM_QCOW2=$(pwd)/${qcow2}" >> "$GITHUB_ENV"
+      #      # Clean up docker images to make space
+      #      docker system prune -a -f
+      #   working-directory: src/cloud-api-adaptor/podvm
 
       - name: Get the install directory
         if: ${{ inputs.install_directory_artifact != '' }}
@@ -90,19 +114,14 @@ jobs:
 
       - name: Config Libvirt
         run: |
-          export TEST_E2E_SECURE_COMMS="${{ inputs.secure_comms }}"
           ./libvirt/config_libvirt.sh
-          echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
+          # echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
+          echo "PODVM_QCOW2=\"${{ env.PODVM_QCOW2 }}\"" >> libvirt.properties
           # For debugging
           cat libvirt.properties
 
-      - uses: oras-project/setup-oras@v1
-        with:
-          version: ${{ env.ORAS_VERSION }}
-
       - name: Install gh cli
-        run: |
-          sudo apt install -y gh
+        run: sudo apt-get update && sudo apt-get install -y gh
 
       - name: Install kustomize
         run: |
@@ -123,15 +142,14 @@ jobs:
           REGISTRY_CREDENTIAL_ENCODED: ${{ secrets.REGISTRY_CREDENTIAL_ENCODED }}
         run: |
           export CLOUD_PROVIDER=libvirt
-          export DEPLOY_KBS=true
+          #export DEPLOY_KBS=true
           export TEST_PROVISION="yes"
           export TEST_TEARDOWN="no"
           export TEST_PROVISION_FILE="$PWD/libvirt.properties"
           export TEST_PODVM_IMAGE="${{ env.PODVM_QCOW2 }}"
-          export TEST_E2E_TIMEOUT="75m"
-          export TEST_E2E_SECURE_COMMS="${{ inputs.secure_comms }}"
+          export TEST_E2E_TIMEOUT="5m"
 
-          make test-e2e
+          make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
 
       - name: Debug tests failure
         if: failure() && steps.runTests.outcome == 'failure'

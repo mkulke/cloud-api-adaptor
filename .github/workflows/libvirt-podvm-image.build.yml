@@ -3,7 +3,7 @@ name: libvirt-podvm-image-build
 on:
   push:
     branches:
-      - mkulke/libvirt-efi
+      - mkulke/libvirt-efi-disable
 
 jobs:
   build-podvm-image:
