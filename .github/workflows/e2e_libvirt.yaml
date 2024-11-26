@@ -118,6 +118,11 @@ jobs:
           name: ${{ inputs.install_directory_artifact }}
           path: src/cloud-api-adaptor/install
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
+
       - name: Config Libvirt
         run: |
           ./libvirt/config_libvirt.sh
@@ -140,11 +145,6 @@ jobs:
       #     test/utils/checkout_kbs.sh
       #   env:
       #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: true
 
       - name: run tests
         id: runTests
