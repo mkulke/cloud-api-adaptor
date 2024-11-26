@@ -95,7 +95,7 @@ jobs:
 
       # tmp enable
       - name: pull image  
-        run: oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:94363554d905c08c83dbefe29620603479f6a0fa71c276306c27c38f68ed2d99
+        run: oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:4e701df3d02ea64da878521757654e1c2f5f1ce28dd2891e088a6ec8e66f5e06
 
       # tmp disable
       # - name: Download image artifact
@@ -106,7 +106,9 @@ jobs:
       #     github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set qcow2 image env
-        run: echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
+        run: |
+          ls -l
+          echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
 
       # - name: Extract qcow2 from ${{ inputs.podvm_image }}
       #   run: |
@@ -159,7 +161,7 @@ jobs:
           export TEST_TEARDOWN="no"
           export TEST_PROVISION_FILE="$PWD/libvirt.properties"
           export TEST_PODVM_IMAGE="${{ env.PODVM_QCOW2 }}"
-          export TEST_E2E_TIMEOUT="5m"
+          export TEST_E2E_TIMEOUT="15m"
 
           make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
 
@@ -180,6 +182,10 @@ jobs:
 
           echo "::group::cloud-api-adaptor logs"
           kubectl logs -l app=cloud-api-adaptor -n confidential-containers-system
+          echo "::endgroup::"
+
+          echo "::group::serial console logs"
+          cat /tmp/serial.log
           echo "::endgroup::"
 
           for ns in $(kubectl get ns -o name 2>/dev/null | sed 's#namespace/##' | grep "^coco-pp-"); do

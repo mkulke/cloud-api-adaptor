@@ -325,6 +325,9 @@ func createDomainXMLs390x(client *libvirtClient, cfg *domainConfig, vm *vmConfig
 
 func createDomainXMLx86_64(client *libvirtClient, cfg *domainConfig, vm *vmConfig) (*libvirtxml.Domain, error) {
 
+	fwPath := "/usr/share/OVMF/OVMF_CODE.fd"
+	serialPort := uint(0)
+
 	var diskControllerAddr uint = 0
 	domain := &libvirtxml.Domain{
 		Type:        "kvm",
@@ -335,7 +338,7 @@ func createDomainXMLx86_64(client *libvirtClient, cfg *domainConfig, vm *vmConfi
 		OS: &libvirtxml.DomainOS{
 			Type:     &libvirtxml.DomainOSType{Arch: "x86_64", Type: typeHardwareVirtualMachine},
 			Firmware: "efi",
-			Loader:   &libvirtxml.DomainLoader{Readonly: "yes", Type: "pflash", Path: vm.firmware},
+			Loader:   &libvirtxml.DomainLoader{Readonly: "yes", Type: "pflash", Path: fwPath},
 		},
 		// For Hot-Plug Feature.
 		Features: &libvirtxml.DomainFeatureList{
@@ -346,6 +349,15 @@ func createDomainXMLx86_64(client *libvirtClient, cfg *domainConfig, vm *vmConfi
 		CPU:      &libvirtxml.DomainCPU{Mode: "host-model"},
 		OnReboot: "restart",
 		Devices: &libvirtxml.DomainDeviceList{
+			// Serial console
+			Serials: []libvirtxml.DomainSerial{
+				{
+					Source: &libvirtxml.DomainChardevSource{
+						File: &libvirtxml.DomainChardevSourceFile{Path: "/tmp/serial.log"},
+					},
+					Target: &libvirtxml.DomainSerialTarget{Port: &serialPort},
+				},
+			},
 			// Disks.
 			Disks: []libvirtxml.DomainDisk{
 				{
@@ -382,11 +394,11 @@ func createDomainXMLx86_64(client *libvirtClient, cfg *domainConfig, vm *vmConfi
 				},
 			},
 			// Serial Console Devices.
-			Consoles: []libvirtxml.DomainConsole{
-				{
-					Target: &libvirtxml.DomainConsoleTarget{Type: "serial"},
-				},
-			},
+			// Consoles: []libvirtxml.DomainConsole{
+			// 	{
+			// 		Target: &libvirtxml.DomainConsoleTarget{Type: "serial", Port: &serialPort},
+			// 	},
+			// },
 		},
 	}
 
