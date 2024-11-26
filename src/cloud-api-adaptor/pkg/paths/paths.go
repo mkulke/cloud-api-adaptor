@@ -8,5 +8,5 @@ const (
 	AgentCfgPath       = "/run/peerpod/agent-config.toml"
 	ForwarderCfgPath   = "/run/peerpod/daemon.json"
 	DockerUserDataPath = "/run/peerpod/userdata"
-	UserDataPath       = "/run/configdisk/user-data"
+	UserDataPath       = "/run/media/cidata/user-data"
 )

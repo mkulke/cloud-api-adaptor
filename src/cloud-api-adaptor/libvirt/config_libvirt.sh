@@ -104,22 +104,26 @@ installKcli
 echo "Installing kubectl..."
 installK8sclis
 
+SSH_KEY_FILE="${HOME}/.ssh/libvirt_id_rsa"
+
 # kcli needs a pair of keys to setup the VMs
-[ -f $HOME/.ssh/id_rsa ] || ssh-keygen -t rsa -f $HOME/.ssh/id_rsa -N ""
+[ -f "$SSH_KEY_FILE" ] || ssh-keygen -t rsa -f "$SSH_KEY_FILE" -N ""
 
 pushd install/overlays/libvirt
-cp $HOME/.ssh/id_rsa* .
-cat id_rsa.pub >> $HOME/.ssh/authorized_keys
-chmod 600 $HOME/.ssh/authorized_keys
+cp "$SSH_KEY_FILE"* .
+
+# Add the public key to the authorized_keys file
+cat "${SSH_KEY_FILE}.pub" >> "${HOME}/.ssh/authorized_keys"
+chmod 600 "${HOME}/.ssh/authorized_keys"
 
 echo "Verifing libvirt connection..."
 IP="$(hostname -I | cut -d' ' -f1)"
-virsh -c "qemu+ssh://${USER}@${IP}/system?keyfile=$(pwd)/id_rsa&no_verify=1" nodeinfo
+virsh -c "qemu+ssh://${USER}@${IP}/system?keyfile=${SSH_KEY_FILE}&no_verify=1" nodeinfo
 popd
 
 rm -f libvirt.properties
 echo "libvirt_uri=\"qemu+ssh://${USER}@${IP}/system?no_verify=1\"" >> libvirt.properties
-echo "libvirt_ssh_key_file=\"id_rsa\"" >> libvirt.properties
+echo "libvirt_ssh_key_file=\"$(basename "${SSH_KEY_FILE}")\"" >> libvirt.properties
 echo "CLUSTER_NAME=\"peer-pods\"" >> libvirt.properties
 
 # switch to the appropriate e2e test and add configs to libvirt.properties as needed

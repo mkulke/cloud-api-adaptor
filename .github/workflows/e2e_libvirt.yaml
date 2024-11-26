@@ -69,14 +69,6 @@ jobs:
           echo "GO_VERSION=${go_version}" >> "$GITHUB_ENV"
           echo "ORAS_VERSION=$(yq -e '.tools.oras' versions.yaml)" >> "$GITHUB_ENV"
 
-      - name: Read properties from versions.yaml
-        run: |
-          sudo snap install yq
-          go_version="$(yq '.tools.golang' versions.yaml)"
-          [ -n "$go_version" ]
-          echo "GO_VERSION=${go_version}" >> "$GITHUB_ENV"
-          echo "ORAS_VERSION=$(yq -e '.tools.oras' versions.yaml)" >> "$GITHUB_ENV"
-
       - uses: oras-project/setup-oras@v1
         with:
           version: ${{ env.ORAS_VERSION }}
