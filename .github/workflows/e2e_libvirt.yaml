@@ -43,7 +43,7 @@ defaults:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -138,20 +138,18 @@ jobs:
       #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #
 
-      - name: Setup tmate session
-        # uses: mkulke/action-tmate@91e5df260e6d916f9b89c397c11e3e8af065ff57
-        uses: mxschmitt/action-tmate@v3
-        with:
-          detached: true
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   with:
+      #     detached: true
 
-      - name: sleep 1h
-        run: sleep 3600 || true
+      # - name: sleep 1h
+      #   run: sleep 3600 || true
 
       - name: Config Libvirt
         run: |
           ./libvirt/config_libvirt.sh
           #echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
-          #echo "CAA_IMAGE=\"ghcr.io/mkulke/confidential-containers/cloud-api-adaptor:libvirt-efi\"" >> libvirt.properties
           echo "PODVM_QCOW2=\"${{ env.PODVM_QCOW2 }}\"" >> libvirt.properties
           # For debugging
           cat libvirt.properties
