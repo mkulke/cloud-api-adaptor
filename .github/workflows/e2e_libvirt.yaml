@@ -87,7 +87,8 @@ jobs:
 
       # tmp enable
       - name: pull image  
-        run: oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:4e701df3d02ea64da878521757654e1c2f5f1ce28dd2891e088a6ec8e66f5e06
+        # run: oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:4e701df3d02ea64da878521757654e1c2f5f1ce28dd2891e088a6ec8e66f5e06
+        run: oras pull ghcr.io/stevenhorsman/podvm-generic-fedora-debug:latest
 
       # tmp disable
       # - name: Download image artifact
@@ -100,7 +101,9 @@ jobs:
       - name: Set qcow2 image env
         run: |
           ls -l
-          echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
+          tar xf podvm.tar.xz
+          # echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
+          echo "PODVM_QCOW2=$(pwd)/podvm-amd64.qcow2" >> "$GITHUB_ENV"
 
       # - name: Extract qcow2 from ${{ inputs.podvm_image }}
       #   run: |
@@ -148,7 +151,7 @@ jobs:
         run: |
           ./libvirt/config_libvirt.sh
           #echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
-          echo "CAA_IMAGE=\"ghcr.io/mkulke/confidential-containers/cloud-api-adaptor:libvirt-efi\"" >> libvirt.properties
+          #echo "CAA_IMAGE=\"ghcr.io/mkulke/confidential-containers/cloud-api-adaptor:libvirt-efi\"" >> libvirt.properties
           echo "PODVM_QCOW2=\"${{ env.PODVM_QCOW2 }}\"" >> libvirt.properties
           # For debugging
           cat libvirt.properties
