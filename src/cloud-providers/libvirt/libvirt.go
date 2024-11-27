@@ -324,8 +324,7 @@ func createDomainXMLs390x(client *libvirtClient, cfg *domainConfig, vm *vmConfig
 }
 
 func createDomainXMLx86_64(client *libvirtClient, cfg *domainConfig, vm *vmConfig) (*libvirtxml.Domain, error) {
-
-	fwPath := "/usr/share/OVMF/OVMF_CODE.fd"
+	fwPath := "/usr/share/OVMF/OVMF_CODE_4M.fd"
 	serialPort := uint(0)
 
 	var diskControllerAddr uint = 0
