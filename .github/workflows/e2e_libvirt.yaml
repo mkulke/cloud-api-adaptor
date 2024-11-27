@@ -118,14 +118,7 @@ jobs:
           name: ${{ inputs.install_directory_artifact }}
           path: src/cloud-api-adaptor/install
 
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
-      #   with:
-      #     detached: true
-
       - name: Config Libvirt
-        env:
-          DEBUG: "1"
         run: |
           ./libvirt/config_libvirt.sh
           # echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
@@ -148,6 +141,11 @@ jobs:
       #     test/utils/checkout_kbs.sh
       #   env:
       #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
 
       - name: run tests
         id: runTests
