@@ -17,6 +17,7 @@ CLUSTER_VERSION="${CLUSTER_VERSION:-1.30.0}"
 CLUSTER_WORKERS="${CLUSTER_WORKERS:-1}"
 LIBVIRT_NETWORK="${LIBVIRT_NETWORK:-default}"
 LIBVIRT_POOL="${LIBVIRT_POOL:-default}"
+LIBVIRT_URI="${LIBVIRT_URI:-qemu+ssh://system?keyfile=${HOME}/.ssh/libvirt_id_rsa&no_verify=1}"
 
 ARCH=$(uname -m)
 TARGET_ARCH=${ARCH/x86_64/amd64}
@@ -45,6 +46,7 @@ wait_for_process() {
 #
 create () {
 	parameters="-P domain=kata.com \
+		-P url=$LIBVIRT_URI \
 		-P pool=$LIBVIRT_POOL \
 		-P ctlplanes=$CLUSTER_CONTROL_NODES \
 		-P workers=$CLUSTER_WORKERS \

@@ -9,7 +9,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-set +x
+[[ "${DEBUG:-0}" == "1" ]] && set -x
 
 source /etc/os-release || source /usr/lib/os-release
 ARCH=$(uname -m)
@@ -117,18 +117,17 @@ cp "$SSH_KEY_FILE"* .
 # Add the public key to the authorized_keys file
 cat "${SSH_KEY_FILE}.pub" >> "${HOME}/.ssh/authorized_keys"
 chmod 600 "${HOME}/.ssh/authorized_keys"
-local_key_file="$(basename "$SSH_KEY_FILE")"
-
-ls -l *_id_rsa*
+LOCAL_KEY_FILE="$(basename "$SSH_KEY_FILE")"
 
 echo "Verifing libvirt connection..."
 IP="$(hostname -I | cut -d' ' -f1)"
-virsh -c "qemu+ssh://${USER}@${IP}/system?keyfile=${local_key_file}&no_verify=1" nodeinfo
+LIBVIRT_URI="qemu+ssh://${USER}@${IP}/system?keyfile=${LOCAL_KEY_FILE}&no_verify=1"
+virsh -c "$LIBVIRT_URI" nodeinfo
 popd
 
 rm -f libvirt.properties
-echo "libvirt_uri=\"qemu+ssh://${USER}@${IP}/system?no_verify=1\"" >> libvirt.properties
-echo "libvirt_ssh_key_file=\"${local_key_file}\"" >> libvirt.properties
+echo "libvirt_uri=\"${LIBVIRT_URI}\"" >> libvirt.properties
+echo "libvirt_ssh_key_file=\"${LOCAL_KEY_FILE}\"" >> libvirt.properties
 echo "CLUSTER_NAME=\"peer-pods\"" >> libvirt.properties
 
 # switch to the appropriate e2e test and add configs to libvirt.properties as needed
