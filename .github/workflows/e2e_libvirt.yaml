@@ -146,7 +146,8 @@ jobs:
       - name: Config Libvirt
         run: |
           ./libvirt/config_libvirt.sh
-          # echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
+          #echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
+          echo "CAA_IMAGE=\"ghcr.io/mkulke/confidential-containers/cloud-api-adaptor:libvirt-efi\"" >> libvirt.properties
           echo "PODVM_QCOW2=\"${{ env.PODVM_QCOW2 }}\"" >> libvirt.properties
           # For debugging
           cat libvirt.properties
