@@ -43,7 +43,7 @@ defaults:
 
 jobs:
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -135,37 +135,37 @@ jobs:
       #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #
 
-      - name: Setup tmate session
-        uses: mkulke/action-tmate@91e5df260e6d916f9b89c397c11e3e8af065ff57
-        with:
-          detached: true
+      # - name: Setup tmate session
+      #   uses: mkulke/action-tmate@91e5df260e6d916f9b89c397c11e3e8af065ff57
+      #   with:
+      #     detached: true
 
-      - name: sleep 1h
-        run: sleep 3600
+      # - name: sleep 1h
+      #   run: sleep 3600
 
-      # - name: Config Libvirt
-      #   run: |
-      #     ./libvirt/config_libvirt.sh
-      #     # echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
-      #     echo "PODVM_QCOW2=\"${{ env.PODVM_QCOW2 }}\"" >> libvirt.properties
-      #     # For debugging
-      #     cat libvirt.properties
+      - name: Config Libvirt
+        run: |
+          ./libvirt/config_libvirt.sh
+          # echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
+          echo "PODVM_QCOW2=\"${{ env.PODVM_QCOW2 }}\"" >> libvirt.properties
+          # For debugging
+          cat libvirt.properties
       
-      # - name: run tests
-      #   id: runTests
-      #   env:
-      #     AUTHENTICATED_REGISTRY_IMAGE: ${{ vars.AUTHENTICATED_REGISTRY_IMAGE }}
-      #     REGISTRY_CREDENTIAL_ENCODED: ${{ secrets.REGISTRY_CREDENTIAL_ENCODED }}
-      #   run: |
-      #     export CLOUD_PROVIDER=libvirt
-      #     export DEPLOY_KBS="no"
-      #     export TEST_PROVISION="yes"
-      #     export TEST_TEARDOWN="no"
-      #     export TEST_PROVISION_FILE="$PWD/libvirt.properties"
-      #     export TEST_PODVM_IMAGE="${{ env.PODVM_QCOW2 }}"
-      #     export TEST_E2E_TIMEOUT="20m"
+      - name: run tests
+        id: runTests
+        env:
+          AUTHENTICATED_REGISTRY_IMAGE: ${{ vars.AUTHENTICATED_REGISTRY_IMAGE }}
+          REGISTRY_CREDENTIAL_ENCODED: ${{ secrets.REGISTRY_CREDENTIAL_ENCODED }}
+        run: |
+          export CLOUD_PROVIDER=libvirt
+          export DEPLOY_KBS="no"
+          export TEST_PROVISION="yes"
+          export TEST_TEARDOWN="no"
+          export TEST_PROVISION_FILE="$PWD/libvirt.properties"
+          export TEST_PODVM_IMAGE="${{ env.PODVM_QCOW2 }}"
+          export TEST_E2E_TIMEOUT="20m"
 
-      #     make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
+          make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
 
       - name: Debug tests failure
         if: failure() && steps.runTests.outcome == 'failure'
