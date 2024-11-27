@@ -135,13 +135,14 @@ jobs:
       #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #
 
-      # - name: Setup tmate session
-      #   uses: mkulke/action-tmate@91e5df260e6d916f9b89c397c11e3e8af065ff57
-      #   with:
-      #     detached: true
+      - name: Setup tmate session
+        # uses: mkulke/action-tmate@91e5df260e6d916f9b89c397c11e3e8af065ff57
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
 
-      # - name: sleep 1h
-      #   run: sleep 3600
+      - name: sleep 1h
+        run: sleep 3600 || true
 
       - name: Config Libvirt
         run: |
