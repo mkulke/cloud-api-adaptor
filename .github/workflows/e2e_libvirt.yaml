@@ -121,6 +121,17 @@ jobs:
           name: ${{ inputs.install_directory_artifact }}
           path: src/cloud-api-adaptor/install
 
+      - name: Config Libvirt
+        run: |
+          export TEST_E2E_SECURE_COMMS="${{ inputs.secure_comms }}"
+          ./libvirt/config_libvirt.sh
+          # For debugging
+          cat libvirt.properties
+
+      - uses: oras-project/setup-oras@v1
+        with:
+          version: ${{ env.ORAS_VERSION }}
+
       - name: Install gh cli
         if: ${{ runner.environment == 'self-hosted' }}
         run: sudo apt-get update && sudo apt-get install -y gh
@@ -131,13 +142,6 @@ jobs:
           curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | \
             sudo bash -s /usr/local/bin
 
-      # - name: Checkout KBS Repository
-      #   run: |
-      #     test/utils/checkout_kbs.sh
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #
-
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
       #   with:
@@ -146,14 +150,19 @@ jobs:
       # - name: sleep 1h
       #   run: sleep 3600 || true
 
-      - name: Config Libvirt
-        run: |
-          ./libvirt/config_libvirt.sh
-          #echo "CAA_IMAGE=\"${{ inputs.caa_image }}\"" >> libvirt.properties
-          echo "PODVM_QCOW2=\"${{ env.PODVM_QCOW2 }}\"" >> libvirt.properties
-          # For debugging
-          cat libvirt.properties
+      # - name: Checkout KBS Repository
+      #   run: |
+      #     test/utils/checkout_kbs.sh
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #
+      #
       
+      - name: Kustomize CAA image
+        if: ${{ inputs.caa_image != '' }}
+        working-directory: src/cloud-api-adaptor/install/overlays/libvirt
+        run: kustomize edit set image cloud-api-adaptor="${{ inputs.caa_image }}"
+
       - name: run tests
         id: runTests
         env:
