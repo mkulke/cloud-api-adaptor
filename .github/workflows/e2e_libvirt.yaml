@@ -85,19 +85,6 @@ jobs:
           sudo apt-get update && sudo apt-get install -y docker.io
           sudo usermod -aG docker "$USER"
 
-      # tmp enable
-      - name: pull image  
-        # run: oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:4e701df3d02ea64da878521757654e1c2f5f1ce28dd2891e088a6ec8e66f5e06
-        run: oras pull ghcr.io/stevenhorsman/podvm-generic-fedora-debug:latest
-
-      # tmp disable
-      # - name: Download image artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: system.raw
-      #     run-id: ${{ github.event.workflow_run.id }}
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Download PodVM image
         run: |
           # oras pull ghcr.io/stevenhorsman/podvm-generic-fedora-debug:latest
@@ -130,10 +117,6 @@ jobs:
           # For debugging
           cat libvirt.properties
 
-      - uses: oras-project/setup-oras@v1
-        with:
-          version: ${{ env.ORAS_VERSION }}
-
       - name: Install gh cli
         if: ${{ runner.environment == 'self-hosted' }}
         run: sudo apt-get update && sudo apt-get install -y gh
@@ -152,13 +135,11 @@ jobs:
       # - name: sleep 1h
       #   run: sleep 3600 || true
 
-      # - name: Checkout KBS Repository
-      #   run: |
-      #     test/utils/checkout_kbs.sh
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #
-      #
+      - name: Checkout KBS Repository
+        run: |
+          test/utils/checkout_kbs.sh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Kustomize CAA image
         if: ${{ inputs.caa_image != '' }}
@@ -172,14 +153,16 @@ jobs:
           REGISTRY_CREDENTIAL_ENCODED: ${{ secrets.REGISTRY_CREDENTIAL_ENCODED }}
         run: |
           export CLOUD_PROVIDER=libvirt
-          export DEPLOY_KBS="no"
+          #export DEPLOY_KBS="no"
+          export DEPLOY_KBS="yes"
           export TEST_PROVISION="yes"
           export TEST_TEARDOWN="no"
           export TEST_PROVISION_FILE="$PWD/libvirt.properties"
           export TEST_PODVM_IMAGE="${{ env.PODVM_QCOW2 }}"
           export TEST_E2E_TIMEOUT="20m"
 
-          make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
+          #make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
+          make test-e2e
 
       - name: Debug tests failure
         if: failure() && steps.runTests.outcome == 'failure'
