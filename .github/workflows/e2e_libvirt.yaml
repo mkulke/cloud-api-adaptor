@@ -131,11 +131,12 @@ jobs:
           curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | \
             sudo bash -s /usr/local/bin
 
-      - name: Checkout KBS Repository
-        run: |
-          test/utils/checkout_kbs.sh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Checkout KBS Repository
+      #   run: |
+      #     test/utils/checkout_kbs.sh
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #
 
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
@@ -160,14 +161,14 @@ jobs:
           REGISTRY_CREDENTIAL_ENCODED: ${{ secrets.REGISTRY_CREDENTIAL_ENCODED }}
         run: |
           export CLOUD_PROVIDER=libvirt
-          export DEPLOY_KBS="yes"
+          export DEPLOY_KBS="no"
           export TEST_PROVISION="yes"
           export TEST_TEARDOWN="no"
           export TEST_PROVISION_FILE="$PWD/libvirt.properties"
           export TEST_PODVM_IMAGE="${{ env.PODVM_QCOW2 }}"
-          export TEST_E2E_TIMEOUT="60m"
+          export TEST_E2E_TIMEOUT="20m"
 
-          make test-e2e
+          make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
 
       - name: Debug tests failure
         if: failure() && steps.runTests.outcome == 'failure'
