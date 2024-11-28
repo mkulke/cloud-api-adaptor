@@ -87,12 +87,12 @@ jobs:
 
       - name: Download PodVM image
         run: |
-          # oras pull ghcr.io/stevenhorsman/podvm-generic-fedora-debug:latest
-          oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:a7df1cd872b48c3a6768756aeaf86ae9b63b795b6a81785cb0563df0181148c8
+          oras pull ghcr.io/stevenhorsman/podvm-generic-fedora-debug:latest
+          # oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:a7df1cd872b48c3a6768756aeaf86ae9b63b795b6a81785cb0563df0181148c8
           ls -l
-          echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
-          # tar xf podvm.tar.xz
-          # echo "PODVM_QCOW2=$(pwd)/podvm-amd64.qcow2" >> "$GITHUB_ENV"
+          # echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
+          tar xf podvm.tar.xz
+          echo "PODVM_QCOW2=$(pwd)/podvm-amd64.qcow2" >> "$GITHUB_ENV"
 
       # - name: Extract qcow2 from ${{ inputs.podvm_image }}
       #   run: |
