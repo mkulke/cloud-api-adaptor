@@ -87,12 +87,11 @@ jobs:
 
       - name: Download PodVM image
         run: |
-          oras pull ghcr.io/stevenhorsman/podvm-generic-fedora-debug:latest
-          # oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:a7df1cd872b48c3a6768756aeaf86ae9b63b795b6a81785cb0563df0181148c8
-          ls -l
-          # echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
-          tar xf podvm.tar.xz
-          echo "PODVM_QCOW2=$(pwd)/podvm-amd64.qcow2" >> "$GITHUB_ENV"
+          oras pull ghcr.io/mkulke/confidential-containers/libvirt-mkosi-image@sha256:d2fcf1c5c4e318f82c56cfd5de7aa9160a1a1932c619b329c73abef33300c563
+          echo "PODVM_QCOW2=$(pwd)/system.qcow2" >> "$GITHUB_ENV"
+          # oras pull ghcr.io/stevenhorsman/podvm-generic-fedora-debug:latest
+          # tar xf podvm.tar.xz
+          # echo "PODVM_QCOW2=$(pwd)/podvm-amd64.qcow2" >> "$GITHUB_ENV"
 
       # - name: Extract qcow2 from ${{ inputs.podvm_image }}
       #   run: |
@@ -153,7 +152,7 @@ jobs:
           REGISTRY_CREDENTIAL_ENCODED: ${{ secrets.REGISTRY_CREDENTIAL_ENCODED }}
         run: |
           export CLOUD_PROVIDER=libvirt
-          #export DEPLOY_KBS="no"
+          # export DEPLOY_KBS="no"
           export DEPLOY_KBS="yes"
           export TEST_PROVISION="yes"
           export TEST_TEARDOWN="no"
@@ -161,7 +160,7 @@ jobs:
           export TEST_PODVM_IMAGE="${{ env.PODVM_QCOW2 }}"
           export TEST_E2E_TIMEOUT="20m"
 
-          #make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
+          # make test-e2e RUN_TESTS="TestLibvirtCreateSimplePod"
           make test-e2e
 
       - name: Debug tests failure
