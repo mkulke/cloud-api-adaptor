@@ -10,9 +10,9 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	b64 "encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -204,13 +204,13 @@ func TestInitDataMeasurement(t *testing.T) {
 	image := "quay.io/confidential-containers/test-images:curl-jq"
 
 	// truncate the measurement to 32 bytes
-	msmtInts := make([]int, len(msmt))
-	for i, b := range msmt {
-		msmtInts[i] = int(b)
+	strValues := make([]string, len(msmt))
+	for i, v := range msmt {
+		strValues[i] = strconv.Itoa(int(v))
 	}
+	msStr := strings.Join(strValues, ":")
 
-	msmtJson, _ := json.Marshal(msmtInts)
-	shCmd := fmt.Sprintf("curl -s \"http://127.0.0.1:8006/aa/evidence?runtime_data=test\" | jq --argjson msmt '%s' -e '.quote.pcrs[8] == $msmt'", msmtJson)
+	shCmd := "curl -s \"http://127.0.0.1:8006/aa/evidence?runtime_data=test\" | jq -r -c '.quote.pcrs[8] | join(\":\")'"
 	cmd := []string{"sh", "-c", shCmd}
 
 	b64Data := b64.StdEncoding.EncodeToString([]byte(initdata))
@@ -218,5 +218,6 @@ func TestInitDataMeasurement(t *testing.T) {
 		"io.katacontainers.config.runtime.cc_init_data": b64Data,
 	}
 	job := NewJob(E2eNamespace, name, 0, image, WithJobCommand(cmd), WithJobAnnotations(annotations))
-	NewTestCase(t, testEnv, "InitDataMeasurement", assert, "InitData measured correctly").WithJob(job).Run()
+
+	NewTestCase(t, testEnv, "InitDataMeasurement", assert, "InitData measured correctly").WithJob(job).WithExpectedPodLogString(msStr).Run()
 }
