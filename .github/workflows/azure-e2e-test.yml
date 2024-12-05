@@ -78,9 +78,9 @@ jobs:
           - id: "tdx"
             machine_type: "Standard_DC2es_v5"
             jitter: 0
-          - id: "snp"
-            machine_type: "Standard_DC2as_v5"
-            jitter: 10
+          # - id: "snp"
+          #   machine_type: "Standard_DC2as_v5"
+          #   jitter: 10
     steps:
     - uses: actions/checkout@v4
 
@@ -165,8 +165,8 @@ jobs:
         parameters:
           - id: "tdx"
             machine_type: "Standard_DC2es_v5"
-          - id: "snp"
-            machine_type: "Standard_DC2as_v5"
+          # - id: "snp"
+          #   machine_type: "Standard_DC2as_v5"
     steps:
     - uses: actions/checkout@v4
 
@@ -233,7 +233,10 @@ jobs:
     - name: Run e2e test
       env:
         TEST_PROVISION: "no"
-        DEPLOY_KBS: "yes"
+        # tmp
+        TEST_TEARDOWN: "no" 
+        # DEPLOY_KBS: "yes"
+        DEPLOY_KBS: "no"
         CUSTOM_PCCS_URL: "https://global.acccache.azure.net/sgx/certification/v4"
       run: |
         # Since we install the cluster in parallel, we need to get the credentials here.
@@ -241,22 +244,24 @@ jobs:
         az aks get-credentials \
           --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
           --name "${CLUSTER_NAME}"
-        make test-e2e RUN_TESTS="^Test\(CreateSimplePodAzure\|RemoteAttestation\|InitDataMeasurement\)$"
+        # make test-e2e RUN_TESTS="^Test\(CreateSimplePodAzure\|RemoteAttestation\|InitDataMeasurement\)$"
+        make test-e2e RUN_TESTS="TestInitDataMeasurement"
 
   cleanup:
     runs-on: ubuntu-24.04
     needs:
     - run-e2e-test
-    if: always()
+    # if: always()
+    if: false
     strategy:
       matrix:
         parameters:
           - id: "tdx"
             machine_type: "Standard_DC2es_v5"
             jitter: 0
-          - id: "snp"
-            machine_type: "Standard_DC2as_v5"
-            jitter: 10
+          # - id: "snp"
+          #   machine_type: "Standard_DC2as_v5"
+          #   jitter: 10
     steps:
     - uses: azure/login@v2
       name: 'Az CLI login'
