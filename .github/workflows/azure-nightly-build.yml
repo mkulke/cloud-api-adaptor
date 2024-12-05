@@ -5,6 +5,9 @@ on:
   # Runs "at midnight every day" (see https://crontab.guru)
   # will base on default branch `main`
   - cron: '0 3 * * *'
+  push:
+    branches:
+    - mkulke/test
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -22,7 +25,8 @@ jobs:
       run: |
         nightly_version=$(date +'%Y.%m.%d')
         echo "Generated nightly version for the image as: ${nightly_version}"
-        echo "image-version=${nightly_version}" >> "$GITHUB_OUTPUT"
+        # echo "image-version=${nightly_version}" >> "$GITHUB_OUTPUT"
+        echo "image-version=0.0.1" >> "$GITHUB_OUTPUT"
 
   build-podvm-image:
     uses: ./.github/workflows/azure-podvm-image-build.yml
