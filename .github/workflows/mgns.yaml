@@ -1,0 +1,36 @@
+name: mgns bla
+
+on:
+  push:
+    branches:
+    - mkulke/bla
+
+jobs:
+  ubuntu2204:
+    name: Test userns
+    runs-on: 'ubuntu-22.04'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: run user ns test
+      run: python3 check_userns.py
+
+  ubuntulatest:
+    name: Test userns
+    runs-on: 'ubuntu-latest'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: run user ns test
+      run: python3 check_userns.py
+
+  ubuntu2404:
+    name: Test userns
+    runs-on: 'ubuntu-24.04'
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: disable apparmor userns restriction
+      run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+    - name: run user ns test
+      run: python3 check_userns.py
