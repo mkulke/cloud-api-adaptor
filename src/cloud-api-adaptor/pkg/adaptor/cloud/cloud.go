@@ -222,7 +222,7 @@ func (s *cloudService) CreateVM(ctx context.Context, req *pb.CreateVMRequest) (r
 	instanceType := util.GetInstanceTypeFromAnnotation(req.Annotations)
 
 	// Get Pod VM cpu and memory from annotations
-	vcpus, memory, gpus := util.GetPodvmResourcesFromAnnotation(req.Annotations)
+	resources := util.GetPodVMResourcesFromAnnotation(req.Annotations)
 
 	// Get Pod VM image from annotations
 	image := util.GetImageFromAnnotation(req.Annotations)
@@ -230,9 +230,7 @@ func (s *cloudService) CreateVM(ctx context.Context, req *pb.CreateVMRequest) (r
 	// Pod VM spec
 	vmSpec := provider.InstanceTypeSpec{
 		InstanceType: instanceType,
-		VCPUs:        vcpus,
-		Memory:       memory,
-		GPUs:         gpus,
+		Resources:    resources,
 		Image:        image,
 	}
 
@@ -330,6 +328,14 @@ func (s *cloudService) CreateVM(ctx context.Context, req *pb.CreateVMRequest) (r
 				Content: string(daemonJSON),
 			},
 		},
+	}
+
+	if resources.Storage > 0 {
+		// Write a marker file to indicate that we want to use the disk as sandbox storage
+		cloudConfig.WriteFiles = append(cloudConfig.WriteFiles, cloudinit.WriteFile{
+			Path:    DiskMarkerPath,
+			Content: "",
+		})
 	}
 
 	if authJSON != nil {
