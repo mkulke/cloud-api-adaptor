@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net/netip"
-	"path/filepath"
+	"os"
 	"regexp"
 	"strings"
 
@@ -41,9 +41,6 @@ func NewProvider(config *Config) (provider.Provider, error) {
 
 	logger.Printf("azure config %+v", config.Redact())
 
-	// Clean the config.SSHKeyPath to avoid bad paths
-	config.SSHKeyPath = filepath.Clean(config.SSHKeyPath)
-
 	azureClient, err := NewAzureClient(*config)
 	if err != nil {
 		logger.Printf("creating azure client: %v", err)
@@ -52,9 +49,23 @@ func NewProvider(config *Config) (provider.Provider, error) {
 
 	// The podvm disk doesn't support sshd logins. keys can be baked
 	// into a debug-image. The ARM api mandates a pubkey, though.
+	sshPublicKeyPath := os.ExpandEnv(config.SSHKeyPath)
+	var pubkeyBytes []byte
+	if _, err := os.Stat(sshPublicKeyPath); err == nil {
+		pubkeyBytes, err = os.ReadFile(sshPublicKeyPath)
+		if err != nil {
+			err = fmt.Errorf("reading ssh public key file: %w", err)
+			logger.Printf("%v", err)
+			return nil, err
+		}
+	} else {
+		err = fmt.Errorf("ssh public key: %w", err)
+		logger.Printf("%v", err)
+		return nil, err
+	}
 	dummySSHKey := armcompute.SSHPublicKey{
-		Path:    to.Ptr("/dummy"),
-		KeyData: to.Ptr("dummy"),
+		Path:    to.Ptr(fmt.Sprintf("/home/%s/.ssh/authorized_keys", config.SSHUserName)),
+		KeyData: to.Ptr(string(pubkeyBytes)),
 	}
 
 	provider := &azureProvider{
@@ -342,7 +353,8 @@ func (p *azureProvider) updateInstanceSizeSpecList() error {
 		}
 		for _, vmSize := range nextResult.VirtualMachineSizeListResult.Value {
 			if util.Contains(instanceSizes, *vmSize.Name) {
-				resources := provider.PodVMResources{VCPUs: int64(*vmSize.NumberOfCores), Memory: int64(*vmSize.MemoryInMB)}
+				vcpus, memory := int64(*vmSize.NumberOfCores), int64(*vmSize.MemoryInMB)
+				resources := provider.NewPodVMResources(vcpus, memory)
 				instanceSizeSpec := provider.InstanceTypeSpec{InstanceType: *vmSize.Name, Resources: resources}
 				instanceSizeSpecList = append(instanceSizeSpecList, instanceSizeSpec)
 			}
@@ -365,7 +377,7 @@ func (p *azureProvider) getResourceTags() map[string]*string {
 	return tags
 }
 
-func (p *azureProvider) getVMParameters(instanceSize, diskName, cloudConfig, instanceName, nicName string, storage int64) (*armcompute.VirtualMachine, error) {
+func (p *azureProvider) getVMParameters(instanceSize, diskName, cloudConfig, instanceName, nicName string, diskSize int64) (*armcompute.VirtualMachine, error) {
 	userDataB64 := base64.StdEncoding.EncodeToString([]byte(cloudConfig))
 
 	// Azure limits the base64 encrypted userData to 64KB.
@@ -418,8 +430,8 @@ func (p *azureProvider) getVMParameters(instanceSize, diskName, cloudConfig, ins
 		ManagedDisk:  managedDiskParams,
 	}
 
-	if storage > 0 {
-		osDisk.DiskSizeGB = to.Ptr(int32(storage))
+	if diskSize > 0 {
+		osDisk.DiskSizeGB = to.Ptr(int32(diskSize))
 	}
 
 	vmParameters := armcompute.VirtualMachine{

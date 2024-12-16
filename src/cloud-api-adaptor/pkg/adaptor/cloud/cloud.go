@@ -64,6 +64,8 @@ type ServerConfig struct {
 	SecureCommsPpOutbounds  string
 	SecureCommsKbsAddress   string
 	PeerPodsLimitPerNode    int
+	UseEncryptedDisk        bool
+	DiskSize                uint64
 }
 
 var logger = log.New(log.Writer(), "[adaptor/cloud] ", log.LstdFlags|log.Lmsgprefix)
@@ -224,6 +226,11 @@ func (s *cloudService) CreateVM(ctx context.Context, req *pb.CreateVMRequest) (r
 	// Get Pod VM cpu and memory from annotations
 	resources := util.GetPodVMResourcesFromAnnotation(req.Annotations)
 
+	// Add disk size to resources if set
+	if s.serverConfig.DiskSize > 0 {
+		resources.Storage = int64(s.serverConfig.DiskSize)
+	}
+
 	// Get Pod VM image from annotations
 	image := util.GetImageFromAnnotation(req.Annotations)
 
@@ -330,7 +337,7 @@ func (s *cloudService) CreateVM(ctx context.Context, req *pb.CreateVMRequest) (r
 		},
 	}
 
-	if resources.Storage > 0 {
+	if s.serverConfig.DiskSize > 0 {
 		// Write a marker file to indicate that we want to use the disk as sandbox storage
 		cloudConfig.WriteFiles = append(cloudConfig.WriteFiles, cloudinit.WriteFile{
 			Path:    DiskMarkerPath,

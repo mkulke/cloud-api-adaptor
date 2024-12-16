@@ -67,6 +67,15 @@ type PodVMResources struct {
 	Storage int64
 }
 
+func NewPodVMResources(vcpus, memory int64) PodVMResources {
+	return PodVMResources{
+		VCPUs:   vcpus,
+		Memory:  memory,
+		GPUs:    0,
+		Storage: 0,
+	}
+}
+
 type InstanceTypeSpec struct {
 	InstanceType string
 	Resources    PodVMResources
