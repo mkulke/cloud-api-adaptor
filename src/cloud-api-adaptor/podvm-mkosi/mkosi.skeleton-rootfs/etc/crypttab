@@ -1,1 +1,1 @@
-scratch /dev/disk/by-label/scratch - try-empty-password
+scratch /dev/sda4 - try-empty-password
