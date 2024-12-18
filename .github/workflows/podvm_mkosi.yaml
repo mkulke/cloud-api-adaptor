@@ -193,6 +193,7 @@ jobs:
 
 
       - name: Clean up some space for the docker provider build
+        if: false
         working-directory: src/cloud-api-adaptor/podvm-mkosi
         run: |
           sudo du --max-depth=2 /home/runner || true
@@ -202,6 +203,7 @@ jobs:
           sudo rm -rf ./mkosi.cache
 
       - name: Build and push image for docker provider
+        if: false
         id: build_docker_oci
         working-directory: src/cloud-api-adaptor/podvm-mkosi
         run: |
