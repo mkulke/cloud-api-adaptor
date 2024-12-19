@@ -1,0 +1,20 @@
+---
+name: mgns-libvirt
+
+on:
+  push:
+    branches:
+    - mkulke/oci-test
+
+jobs:
+  libvirt:
+    name: libvirt
+    uses: ./.github/workflows/e2e_libvirt.yaml
+    with:
+      runner: ubuntu-24.04
+      caa_image: ghcr.io/mkulke/libvirt/cloud-api-adaptor:latest-amd64-dev
+      podvm_image: ghcr.io/mkulke/libvirt/podvm-generic-fedora-debug-amd64:6aa18e67
+      install_directory_artifact: install_directory
+      git_ref: refs/heads/mkulke/oci-test
+      oras: true
+    secrets: inherit
