@@ -49,9 +49,7 @@ jobs:
         path: cloud-api-adaptor
         ref: "${{ inputs.git-ref || 'main' }}"
 
-    - uses: cachix/install-nix-action@v30
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
+    - uses: actions/setup-mkosi@v22
 
     - name: Install uplosi
       run: |
