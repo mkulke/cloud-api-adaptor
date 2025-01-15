@@ -5,6 +5,36 @@
 name: (Callable) libvirt e2e tests
 
 on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        default: 'ubuntu-24.04'
+        required: false
+        type: string
+      podvm_image:
+        required: true
+        type: string
+      caa_image:
+        required: true
+        type: string
+      git_ref:
+        default: 'main'
+        required: false
+        type: string
+      secure_comms:
+        default: 'none'
+        description: SecureComms configuration. Defaults to none.
+        required: false
+        type: string
+      oras:
+        default: false
+        required: false
+        type: boolean
+      container_runtime:
+        default: 'containerd'
+        required: false
+        type: string
+
   workflow_call:
     inputs:
       runner:
