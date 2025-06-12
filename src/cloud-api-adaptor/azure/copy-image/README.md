@@ -4,6 +4,9 @@
 The tool creates a temporary managed disk and managed image from the source community image
 and publishes an image version under the specified gallery and image definition.
 Temporary resources are removed automatically when the command completes.
+## Building
+
+Run `make azure-copy-image` from the `src/cloud-api-adaptor` directory to build the binary.
 
 ## Usage
 

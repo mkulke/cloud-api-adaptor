@@ -75,11 +75,8 @@ cloud-api-adaptor: GOOPTIONS := $(subst CGO_ENABLED=0,CGO_ENABLED=1,$(GOOPTIONS)
 endif
 
 $(BINARIES): .git-commit $(SOURCES)
-$(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./cmd/$@
+	$(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./cmd/$@
 
-.PHONY: copy-image
-copy-image: .git-commit $(SOURCES) azure/copy-image/main.go
-	$(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./azure/copy-image
 
 ##@ Development
 
@@ -236,3 +233,9 @@ endif
 	$(if $(AUTHFILE),--build-arg AUTHFILE=$(AUTHFILE),) \
 	$(DOCKER_OPTS) .
 	rm -rf .git
+
+##@ Utils
+
+.PHONY: azure-copy-image
+azure-copy-image: .git-commit $(SOURCES) azure/copy-image/main.go
+	$(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./azure/copy-image
