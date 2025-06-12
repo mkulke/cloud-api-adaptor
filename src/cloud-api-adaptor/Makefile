@@ -14,7 +14,7 @@ CLOUD_PROVIDER ?=
 GOOPTIONS   ?= GOOS=linux GOARCH=$(GO_ARCH) CGO_ENABLED=0
 GOFLAGS     ?=
 BINARIES    := cloud-api-adaptor agent-protocol-forwarder process-user-data
-SOURCEDIRS  := ./cmd ./pkg
+SOURCEDIRS  := ./cmd ./pkg ./azure/cmd/copy-image
 PACKAGES    := $(shell go list $(addsuffix /...,$(SOURCEDIRS)))
 SOURCES     := $(shell find $(SOURCEDIRS) -name '*.go' -print)
 # End-to-end tests overall run timeout.
@@ -75,7 +75,7 @@ cloud-api-adaptor: GOOPTIONS := $(subst CGO_ENABLED=0,CGO_ENABLED=1,$(GOOPTIONS)
 endif
 
 $(BINARIES): .git-commit $(SOURCES)
-	$(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./cmd/$@
+       $(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./cmd/$@
 
 ##@ Development
 
@@ -232,3 +232,9 @@ endif
 	$(if $(AUTHFILE),--build-arg AUTHFILE=$(AUTHFILE),) \
 	$(DOCKER_OPTS) .
 	rm -rf .git
+
+##@ Utils
+
+.PHONY: azure-copy-image
+azure-copy-image: .git-commit $(SOURCES) azure/cmd/copy-image/main.go
+       $(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./azure/cmd/copy-image
