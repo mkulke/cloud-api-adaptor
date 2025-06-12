@@ -13,8 +13,8 @@ RELEASE_BUILD ?= false
 CLOUD_PROVIDER ?=
 GOOPTIONS   ?= GOOS=linux GOARCH=$(GO_ARCH) CGO_ENABLED=0
 GOFLAGS     ?=
-BINARIES    := cloud-api-adaptor agent-protocol-forwarder process-user-data copy-image
-SOURCEDIRS  := ./cmd ./pkg
+BINARIES    := cloud-api-adaptor agent-protocol-forwarder process-user-data
+SOURCEDIRS  := ./cmd ./pkg ./azure/copy-image
 PACKAGES    := $(shell go list $(addsuffix /...,$(SOURCEDIRS)))
 SOURCES     := $(shell find $(SOURCEDIRS) -name '*.go' -print)
 # End-to-end tests overall run timeout.
@@ -75,7 +75,11 @@ cloud-api-adaptor: GOOPTIONS := $(subst CGO_ENABLED=0,CGO_ENABLED=1,$(GOOPTIONS)
 endif
 
 $(BINARIES): .git-commit $(SOURCES)
-	$(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./cmd/$@
+$(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./cmd/$@
+
+.PHONY: copy-image
+copy-image: .git-commit $(SOURCES) azure/copy-image/main.go
+	$(GOOPTIONS) go build $(GOFLAGS) -o "$@" ./azure/copy-image
 
 ##@ Development
 

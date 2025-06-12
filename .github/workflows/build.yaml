@@ -54,6 +54,8 @@ jobs:
           else
             RELEASE_BUILD=false make build
           fi
+      - name: Build copy-image CLI
+        run: go build ./azure/copy-image
       - name: Test
         if: matrix.type == 'dev'
         run: |
