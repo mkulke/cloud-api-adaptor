@@ -6,20 +6,36 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	armcompute "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4"
+	"github.com/google/uuid"
 )
+
+func defaultSubscriptionID(ctx context.Context) (string, error) {
+	out, err := exec.CommandContext(ctx, "az", "account", "show", "--query", "id", "-o", "tsv").Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+func groupLocation(ctx context.Context, group string) (string, error) {
+	out, err := exec.CommandContext(ctx, "az", "group", "show", "-n", group, "--query", "location", "-o", "tsv").Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
 
 func main() {
 	var (
 		subscriptionID        string
 		resourceGroup         string
 		location              string
-		userImageName         string
-		managedDiskName       string
 		galleryName           string
 		imageDefinitionName   string
 		imageVersionName      string
@@ -30,8 +46,6 @@ func main() {
 	flag.StringVar(&subscriptionID, "subscription-id", os.Getenv("AZURE_SUBSCRIPTION_ID"), "Azure subscription ID")
 	flag.StringVar(&resourceGroup, "resource-group", os.Getenv("AZURE_RESOURCE_GROUP"), "Resource group name")
 	flag.StringVar(&location, "location", os.Getenv("AZURE_REGION"), "Azure region")
-	flag.StringVar(&userImageName, "user-image-name", "from-community-gallery-user-image", "Name of the temporary managed image")
-	flag.StringVar(&managedDiskName, "managed-disk-name", "from-community-gallery", "Name of the temporary managed disk")
 	flag.StringVar(&galleryName, "gallery-name", "my_gallery", "Shared Image Gallery name")
 	flag.StringVar(&imageDefinitionName, "definition-name", "my-def-cvm", "Image definition name")
 	flag.StringVar(&imageVersionName, "version-name", "0.0.1", "Image version name")
@@ -40,10 +54,31 @@ func main() {
 
 	flag.Parse()
 
-	if subscriptionID == "" || resourceGroup == "" || location == "" || communityGalleryImage == "" {
-		fmt.Fprintln(os.Stderr, "subscription-id, resource-group, location and community-image-id are required")
+	ctx := context.Background()
+
+	if subscriptionID == "" {
+		var err error
+		subscriptionID, err = defaultSubscriptionID(ctx)
+		if err != nil {
+			log.Fatalf("cannot determine subscription ID: %v", err)
+		}
+	}
+
+	if resourceGroup == "" || communityGalleryImage == "" {
+		fmt.Fprintln(os.Stderr, "resource-group and community-image-id are required")
 		os.Exit(1)
 	}
+
+	if location == "" {
+		var err error
+		location, err = groupLocation(ctx, resourceGroup)
+		if err != nil {
+			log.Fatalf("cannot determine location: %v", err)
+		}
+	}
+
+	managedDiskName := "tmp-disk-" + uuid.New().String()
+	userImageName := "tmp-img-" + uuid.New().String()
 
 	regions := strings.Split(targetRegionsStr, ",")
 	var targets []*armcompute.TargetRegion
@@ -54,8 +89,6 @@ func main() {
 		}
 		targets = append(targets, &armcompute.TargetRegion{Name: to.Ptr(r)})
 	}
-
-	ctx := context.Background()
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		log.Fatalf("creating credential: %v", err)
@@ -83,6 +116,14 @@ func main() {
 		log.Fatalf("waiting for disk: %v", err)
 	}
 
+	defer func() {
+		log.Printf("deleting temporary managed disk %s", managedDiskName)
+		delDiskPoller, err := diskClient.BeginDelete(ctx, resourceGroup, managedDiskName, nil)
+		if err == nil {
+			_, _ = delDiskPoller.PollUntilDone(ctx, nil)
+		}
+	}()
+
 	diskID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s", subscriptionID, resourceGroup, managedDiskName)
 
 	imagesClient, err := armcompute.NewImagesClient(subscriptionID, cred, nil)
@@ -109,6 +150,14 @@ func main() {
 	if _, err = imgPoller.PollUntilDone(ctx, nil); err != nil {
 		log.Fatalf("waiting for managed image: %v", err)
 	}
+
+	defer func() {
+		log.Printf("deleting temporary managed image %s", userImageName)
+		delImgPoller, err := imagesClient.BeginDelete(ctx, resourceGroup, userImageName, nil)
+		if err == nil {
+			_, _ = delImgPoller.PollUntilDone(ctx, nil)
+		}
+	}()
 
 	imageID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/images/%s", subscriptionID, resourceGroup, userImageName)
 
@@ -170,18 +219,6 @@ func main() {
 	}
 	if _, err = verPoller.PollUntilDone(ctx, nil); err != nil {
 		log.Fatalf("waiting for image version: %v", err)
-	}
-
-	log.Printf("deleting temporary managed image %s", userImageName)
-	delImgPoller, err := imagesClient.BeginDelete(ctx, resourceGroup, userImageName, nil)
-	if err == nil {
-		_, _ = delImgPoller.PollUntilDone(ctx, nil)
-	}
-
-	log.Printf("deleting temporary managed disk %s", managedDiskName)
-	delDiskPoller, err := diskClient.BeginDelete(ctx, resourceGroup, managedDiskName, nil)
-	if err == nil {
-		_, _ = delDiskPoller.PollUntilDone(ctx, nil)
 	}
 
 	log.Printf("image version %s/%s/%s created successfully", galleryName, imageDefinitionName, imageVersionName)
