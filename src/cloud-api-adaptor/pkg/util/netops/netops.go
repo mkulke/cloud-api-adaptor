@@ -83,7 +83,7 @@ func OpenCurrentNamespace() (Namespace, error) {
 // CreateNamedNamespace creates a new named network namespace, and returns its path
 func CreateNamedNamespace(name string) (string, error) {
 	runtime.LockOSThread()
-	defer runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
 
 	old, err := netns.Get()
 	if err != nil {
