@@ -82,12 +82,14 @@ jobs:
     strategy:
       matrix:
         parameters:
-          # - id: "tdx"
-          #   machine_type: "Standard_DC2es_v5"
-          #   jitter: 0
-          - id: "snp"
-            machine_type: "Standard_DC2as_v5"
-            jitter: 10
+          - id: "tdx"
+            machine_type: "Standard_DC2es_v6"
+            location: "westeurope"
+            jitter: 0
+          # - id: "snp"
+          #   machine_type: "Standard_DC2as_v5"
+          #   location: "northeurope"
+          #   jitter: 10
     permissions:
       id-token: write
     steps:
@@ -112,6 +114,7 @@ jobs:
         AZURE_IMAGE_ID: ${{ inputs.podvm-image-id }}
         CAA_IMAGE: "${{ github.event.inputs.caa-image || needs.build-caa-container-image.outputs.caa-image }}"
         AZURE_INSTANCE_SIZE: ${{ matrix.parameters.machine_type }}
+        AZURE_LOCATION: ${{ matrix.parameters.location }}
       run: |
         echo "Provisioner file for ${{ matrix.parameters.id }}"
         cat << EOF > "$TEST_PROVISION_FILE"
@@ -119,7 +122,7 @@ jobs:
           AZURE_CLIENT_ID="${{ secrets.AZURE_CLIENT_ID }}"
           RESOURCE_GROUP_NAME="${{ vars.AZURE_RESOURCE_GROUP }}"
           CLUSTER_NAME="${{ env.CLUSTER_NAME }}"
-          LOCATION="${{ vars.AZURE_REGION }}"
+          LOCATION="$AZURE_LOCATION"
           SSH_KEY_ID="id_rsa.pub"
           AZURE_IMAGE_ID="$AZURE_IMAGE_ID"
           IS_CI_MANAGED_CLUSTER="true"
@@ -172,10 +175,12 @@ jobs:
     strategy:
       matrix:
         parameters:
-          # - id: "tdx"
-          #   machine_type: "Standard_DC2es_v5"
-          - id: "snp"
-            machine_type: "Standard_DC2as_v5"
+          - id: "tdx"
+            machine_type: "Standard_DC2es_v6"
+            location: "westeurope"
+          # - id: "snp"
+          #   machine_type: "Standard_DC2as_v5"
+          #   location: "northeurope"
     permissions:
       id-token: write
     steps:
@@ -232,7 +237,7 @@ jobs:
         MASK="${NODE_CIDR#*/}"
         PEERPOD_CIDR="$(sipcalc "$NODE_CIDR" -n 2 | grep ^Network | grep -v current | cut -d' ' -f2)/${MASK}"
         az network public-ip create -g "$NODE_RG" -n peerpod
-        az network nat gateway create -g "$NODE_RG" -l ${{ vars.AZURE_REGION }} --public-ip-addresses peerpod -n peerpod
+        az network nat gateway create -g "$NODE_RG" -l ${{ matrix.parameters.location }} --public-ip-addresses peerpod -n peerpod
         az network vnet subnet create -g "$NODE_RG" --vnet-name "$VNET_NAME" --nat-gateway peerpod --address-prefixes "$PEERPOD_CIDR" -n peerpod
         SUBNET_ID="$(az network vnet subnet show -g "$NODE_RG" --vnet-name "$VNET_NAME" -n peerpod --query id -o tsv)"
         echo "AZURE_SUBNET_ID=\"${SUBNET_ID}\"" >> "$TEST_PROVISION_FILE"
@@ -262,12 +267,14 @@ jobs:
     strategy:
       matrix:
         parameters:
-          # - id: "tdx"
-          #   machine_type: "Standard_DC2es_v5"
-          #   jitter: 0
-          - id: "snp"
-            machine_type: "Standard_DC2as_v5"
-            jitter: 10
+          - id: "tdx"
+            machine_type: "Standard_DC2es_v6"
+            location: "westeurope"
+            jitter: 0
+          # - id: "snp"
+          #   machine_type: "Standard_DC2as_v5"
+          #   location: "northeurope"
+          #   jitter: 10
     permissions:
       id-token: write
     steps:
