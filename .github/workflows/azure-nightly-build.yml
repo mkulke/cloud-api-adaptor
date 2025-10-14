@@ -5,6 +5,9 @@ on:
   # Runs "at midnight every day" (see https://crontab.guru)
   # will base on default branch `main`
   - cron: '0 3 * * *'
+  push:
+    branches:
+    - mkulke/e2etest
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -38,6 +41,7 @@ jobs:
       attestations: write
     with:
       image-version: ${{ needs.generate-podvm-image-version.outputs.image-version }}
+      git-ref: mkulke/e2etest
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
