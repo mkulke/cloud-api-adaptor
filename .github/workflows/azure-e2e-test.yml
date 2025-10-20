@@ -30,13 +30,9 @@ on:
       podvm-image-id:
         type: string
         description: prebuilt podvm image
-      caa-image:
-        type: string
-        description: prebuilt caa image
 
 jobs:
   build-caa-container-image:
-    if: github.event.inputs.caa-image == ''
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -295,7 +291,6 @@ jobs:
         kubectl delete namespace "$namespace" || true
 
     - name: Remove container image
-      if: github.event.inputs.caa-image == ''
       run: |
         # Delete the CAA container image built for this run.
         suffix=".azurecr.io"
