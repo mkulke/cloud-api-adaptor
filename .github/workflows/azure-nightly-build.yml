@@ -5,6 +5,9 @@ on:
   # Runs "at midnight every day" (see https://crontab.guru)
   # will base on default branch `main`
   - cron: '0 3 * * *'
+  push:
+    branches:
+    - mkulke/e2etest
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -26,31 +29,32 @@ jobs:
         echo "Generated nightly version for the image as: ${nightly_version}"
         echo "image-version=${nightly_version}" >> "$GITHUB_OUTPUT"
 
-  build-podvm-image:
-    uses: ./.github/workflows/azure-podvm-image-build.yml
+  # build-podvm-image:
+  #   uses: ./.github/workflows/azure-podvm-image-build.yml
 
-    needs:
-    - generate-podvm-image-version
-    permissions:
-      id-token: write
-      contents: read
-      packages: write
-      attestations: write
-    with:
-      image-version: ${{ needs.generate-podvm-image-version.outputs.image-version }}
-    secrets:
-      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  #   needs:
+  #   - generate-podvm-image-version
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+  #     packages: write
+  #     attestations: write
+  #   with:
+  #     image-version: ${{ needs.generate-podvm-image-version.outputs.image-version }}
+  #   secrets:
+  #     AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  #     AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #     AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
   run-e2e-test:
     uses: ./.github/workflows/azure-e2e-test.yml
-    needs:
-    - build-podvm-image
+    # needs:
+    # - build-podvm-image
     permissions:
       id-token: write
     with:
-      podvm-image-id: ${{ needs.build-podvm-image.outputs.image-id }}
+      podvm-image-id: /CommunityGalleries/cocopodvm-d0e4f35f-5530-4b9c-8596-112487cdea85/Images/podvm_image0/Versions/2025.10.20
+      # podvm-image-id: ${{ needs.build-podvm-image.outputs.image-id }}
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
