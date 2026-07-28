@@ -216,6 +216,16 @@ func TestMain(m *testing.M) {
 		}
 
 		if shouldProvisionCluster {
+			// Clean up auto-created VM instances before deleting cluster.
+			// Pod VM NICs are attached to the cluster VNET, which blocks
+			// deletion of the node resource group if they still exist.
+			if vmHandler, ok := provisioner.(pv.PodVMInstanceHandler); ok {
+				log.Info("Deleting PodVM instances...")
+				if err = vmHandler.DeletePodVMInstance(ctx, cfg); err != nil {
+					log.Warnf("Failed to delete PodVM instances: %v", err)
+				}
+			}
+
 			if err = provisioner.DeleteCluster(ctx, cfg); err != nil {
 				return ctx, err
 			}
@@ -223,14 +233,6 @@ func TestMain(m *testing.M) {
 			if err = provisioner.DeleteVPC(ctx, cfg); err != nil {
 				log.Warnf("Failed to delete vpc resources, err: %s.", err)
 				return ctx, nil
-			}
-		}
-
-		// Clean up auto-created VM instances before deleting cluster
-		if vmHandler, ok := provisioner.(pv.PodVMInstanceHandler); ok {
-			log.Info("Deleting PodVM instances...")
-			if err = vmHandler.DeletePodVMInstance(ctx, cfg); err != nil {
-				log.Warnf("Failed to delete PodVM instances: %v", err)
 			}
 		}
 
