@@ -17,6 +17,7 @@ BINARIES    := cloud-api-adaptor agent-protocol-forwarder process-user-data az-c
 SOURCEDIRS  := ./cmd ./pkg
 PACKAGES    := $(shell go list $(addsuffix /...,$(SOURCEDIRS)))
 SOURCES     := $(shell find $(SOURCEDIRS) -name '*.go' -print)
+DEBUG       ?= false
 # End-to-end tests overall run timeout.
 TEST_E2E_TIMEOUT ?= 60m
 TEST_PODVM_TIMEOUT ?= 5m
@@ -79,6 +80,11 @@ GOFLAGS += -ldflags="-X 'github.com/confidential-containers/cloud-api-adaptor/sr
 space := $() $()
 comma := ,
 GOFLAGS += -tags=$(subst $(space),$(comma),$(strip $(BUILTIN_CLOUD_PROVIDERS)))
+
+# Add debug tag if DEBUG is set
+ifeq ($(DEBUG),true)
+	GOFLAGS += -tags=debug
+endif
 
 ifneq (,$(filter libvirt,$(BUILTIN_CLOUD_PROVIDERS)))
 cloud-api-adaptor: GOOPTIONS := $(subst CGO_ENABLED=0,CGO_ENABLED=1,$(GOOPTIONS))

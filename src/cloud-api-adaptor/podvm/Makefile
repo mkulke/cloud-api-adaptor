@@ -17,6 +17,7 @@ PODVM_BYOM_E2E_CONTAINER_NAME ?= $(REGISTRY)/podvm-byom-e2e-image-$(DISTRO_ARCH)
 VERIFY_PROVENANCE ?= no
 EXPORT_BINARIES ?= true
 MKOSI_VERSION ?= v26
+DEBUG ?= false
 
 _SHA := $(shell git rev-parse --short HEAD)
 _SHA_DIRTY := $(shell [ -n "$$(git status --porcelain 2>/dev/null)" ] && printf -- '-dirty')
@@ -55,6 +56,10 @@ define run_mkosi_in_container
 		bash -c "$(PKG_INSTALL) bubblewrap coreutils git python3; mkdir -p /build; git clone -b $(MKOSI_VERSION) https://github.com/systemd/mkosi /build/mkosi; export PATH="/build/mkosi/bin:$$PATH"; mkosi --tools-tree=default --tools-tree-release=$(DISTRO_RELEASE) --tools-tree-distribution=$(DISTRO_NAME) --distribution=$(DISTRO_NAME) --release=$(DISTRO_RELEASE) $(DISTRO_REPOS) $(1)"
 endef
 
+.PHONY: podvm-binaries-debug
+podvm-binaries-debug: DEBUG = true
+podvm-binaries-debug: podvm-binaries
+
 .PHONY: podvm-binaries
 podvm-binaries:
 	@echo "Building podvm binaries using Docker..."
@@ -83,6 +88,7 @@ endif
 		--build-arg VERIFY_PROVENANCE=$(VERIFY_PROVENANCE) \
 		$(if $(AUTHFILE),--build-arg AUTHFILE=$(AUTHFILE),) \
 		$(if $(DEFAULT_AGENT_POLICY_FILE),--build-arg DEFAULT_AGENT_POLICY_FILE=$(DEFAULT_AGENT_POLICY_FILE),) \
+		$(if $(filter $(DEBUG),true),--build-arg DEBUG=$(DEBUG),) \
 		$(if $(filter $(EXPORT_BINARIES),false),--load,-o type=local,dest="./resources/binaries-tree") \
 		$(DOCKER_OPTS) \
 		-f Dockerfile.podvm_binaries ../../
